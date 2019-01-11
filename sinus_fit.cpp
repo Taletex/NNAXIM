@@ -15,7 +15,22 @@
 
 #include "tiny_dnn/tiny_dnn.h"
 
+// roundb(f, 15) => keep 15 bits in the float, set the other bits to zero
+float roundb(float f, int bits) {
+  union {
+    int i;
+    float f;
+  } num;
+
+  bits = 32 - bits;  // assuming sizeof(int) == sizeof(float) == 4
+  num.f = f;
+  num.i = num.i + (1 << (bits - 1));  // round instead of truncate
+  num.i = num.i & (-1 << bits);
+  return num.f;
+}
+
 int main() {
+
   // create a simple network with 2 layer of 10 neurons each
   // input is x, output is sin(x)
   tiny_dnn::network<tiny_dnn::sequential> net;
@@ -36,9 +51,10 @@ int main() {
     sinusX.push_back(vsinx);
   }
 
+  
   // set learning parameters
   size_t batch_size = 16;      // 16 samples for each network weight update
-  int epochs        = 10000;   // 2000 presentation of all samples
+  int epochs        = 2000;   // 2000 presentation of all samples
   tiny_dnn::adamax opt;
 
   // this lambda function will be called after each epoch
@@ -53,10 +69,29 @@ int main() {
               << std::endl;
   };
 
+  // Da sistemare
+  std::vector<tiny_dnn::vec_t*> weights_list;
+  float test;
+  auto on_enumerate_minibatch = [&]() {
+    
+	for (size_t k = 0; k < net.depth(); k++) {
+	  weights_list = net[k]->weights();
+
+      for (size_t i = 0; i < weights_list.size(); i++) {
+        for (size_t j = 0; j < weights_list[i]->size(); j++) {
+          weights_list[i]->at(j) = roundb(weights_list[i]->at(j), 16);
+        }
+      }
+	}
+  };
+
+  // carico i pesi (da levare se non serve)
+  net.load("../../examples/sinus_fit/my-weights-json", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+  
   // learn (se non abbiamo i pesi)
   std::cout << "learning the sinus function with 2000 epochs:" << std::endl;
-  net.fit<tiny_dnn::mse>(opt, X, sinusX, batch_size, epochs, []() {},
-                         on_enumerate_epoch);
+  net.fit<tiny_dnn::mse>(opt, X, sinusX, batch_size, epochs,
+                           on_enumerate_minibatch, on_enumerate_epoch);
 
   std::cout << std::endl
             << "Training finished, now computing prediction results:"
@@ -64,7 +99,7 @@ int main() {
   
 
   // caricamento rete nel caso in cui non si effettua il learn
-  // net.load("../../examples/sinus_fit/my-weights-json", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+  //net.load("../../examples/sinus_fit/my-weights-json", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
 
   // compare prediction and desired output
   float fMaxError = 0.f;
