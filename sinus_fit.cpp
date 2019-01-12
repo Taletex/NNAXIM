@@ -6,7 +6,7 @@ using namespace std;
 // VARIABLES AND CONSTANTS //
 const string BASE_PATH = "../../examples/sinus_fit/";
 const int BASE_EPOCHS_NUMBER = 10000;
-const int EPOCHS_NUMBER = 200;
+const int EPOCHS_NUMBER = 1000;
 const int BATCH_NUMBER  = 16;
 const enum CONFIG : char {BASE = '0', APPROX1 = '1', APPROX2 = '2', APPROX3 = '3', APPROX4 = '4', APPROX5 = '5', APPROX6 = '6', APPROX7 = '7', APPROX8 = '8', APPROX9 = '9'};
 
@@ -55,18 +55,68 @@ tiny_dnn::network<tiny_dnn::sequential> create_network() {
 
     net.save(BASE_PATH + "base-net-model-json", tiny_dnn::content_type::model, tiny_dnn::file_format::json);
 
-		cout << "> Rete creata con successo (non è stato trovato nessun modello salvato della rete)" << endl;
+		cout << "> Rete creata con successo (non e' stato trovato nessun modello salvato della rete)" << endl;
   }
 
   return net;
 }
 
+
+/* Tests the network based on the selected configuration */
+void test_network(tiny_dnn::network<tiny_dnn::sequential> net,
+                  char config,
+                  bool is_testing) {
+  // loads weights from existing file, if there is no file for the selected
+  // configuration it returns
+  if (!is_testing) {
+    if (exists_file(BASE_PATH + "net-weights-json_" + config)) {
+      net.load(BASE_PATH + "net-weights-json_" + config,
+               tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+      cout << "> Pesi caricati dalla memoria" << endl;
+    } else {
+      cout << "> Non e' stato trovato alcun file contenente i pesi per questa "
+              "configurazione. Non e' possibile procedere con il test."
+           << endl;
+      return;
+    }
+  }
+
+  cout << "> Test della rete iniziato" << endl;
+  // compare prediction and desired output
+  float fMaxError = 0.f;
+  float errorSum  = 0.f;
+  float count     = 0.f;
+  for (float x = -3.1416f; x < 3.1416f; x += 0.2f) {
+    tiny_dnn::vec_t xv = {x};
+    float fPredicted   = net.predict(xv)[0];
+    float fDesired     = sinf(x);
+
+    cout << "  x=" << x << " sinX=" << fDesired << " predicted=" << fPredicted
+         << endl;
+
+    float fError = fabs(fPredicted - fDesired);
+
+    // update max error
+    if (fMaxError < fError) fMaxError = fError;
+
+    // update avg error
+    errorSum = errorSum + fError;
+    count++;
+  }
+
+  cout << endl << "  max_error=" << fMaxError << endl;
+  cout << "  avg_error=" << errorSum / count << endl;
+  cout << endl << "> Test della rete completato con successo" << endl << endl;
+}
+
+
 /* Truncates the weights of the net passed as argument according to the selected configuration */
 // TODO: Qui approssimiamo tutti i pesi di tutti i neuroni approssimandoli a 16
-// bit. Bisogna adattare la funzione alla configuraizone scelta quando useremo
+// bit. Bisogna adattare la funzione alla configurazione scelta quando useremo
 // la nostra rete
 tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
-  vector<tiny_dnn::vec_t*> weights_list;
+  cout << "> Troncamento dei pesi" << endl;
+	vector<tiny_dnn::vec_t*> weights_list;
 	for (size_t k = 0; k < net.depth(); k++) {
     weights_list = net[k]->weights();
 
@@ -97,33 +147,35 @@ int saved_bits(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
 }
 
 /* Trains the network with the selected configuration */
-void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
+void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool is_testing) {
 
 	// loads weights from existing file if the configuration is not the basic one
-	if (config != CONFIG::BASE) {
+  if (config != CONFIG::BASE && !is_testing) {
     if (exists_file(BASE_PATH + "net-weights-json_" + config)) {
       char input_retrain = ' ';
       string input       = " ";
       while (input_retrain != '1' && input_retrain != '2') {
         cout
-          << "> Per questa configurazione esistono già dei pesi salvati. Vuoi "
+          << "> Per questa configurazione esistono gia' dei pesi salvati. Vuoi "
              "effettuare l'allenamento a partire da questi pesi (digita 1) o "
              "dalla configurazione originale non approssimata (digita 2)?"
           << endl;
         cin >> input; input_retrain = input[0];
       }
-      if (input_retrain == '1')
+      if (input_retrain == '1') {
         net.load(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+				cout << "> Pesi caricati dalla memoria" << endl;
+      }
       else {
         net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-        net = truncate_weights(net, config);
+        cout << "> Pesi caricati dalla memoria" << endl;
+				net = truncate_weights(net, config);
 			}
     } else {
       net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-      net = truncate_weights(net, config);
+      cout << "> Pesi caricati dalla memoria" << endl;
+			net = truncate_weights(net, config);
 		}
-
-		cout << "> Pesi caricati dalla memoria" << endl;
 	}
 	
   // create input and desired output on a period (dataset di training)
@@ -151,63 +203,49 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
     if (iEpoch % 100) return;
 
     double loss = net.get_loss<tiny_dnn::mse>(X, sinusX);
-    cout << "epoch=" << iEpoch << "/" << epochs << " loss=" << loss << endl;
+    cout << "  epoch=" << iEpoch << "/" << epochs << " loss=" << loss << endl;
   };
 
   // on_enumerate_minibatch: this lambda function will be called after each minibatch (after weights update)
-  auto on_enumerate_minibatch = [&]() {
-		if (config != CONFIG::BASE) {
-      net = truncate_weights(net, config);
-    }
-  };
+  auto on_enumerate_minibatch = [&]() { };
 
   // learn
   cout << "> Training iniziato" << endl;
   net.fit<tiny_dnn::mse>(opt, X, sinusX, batch_size, epochs, on_enumerate_minibatch, on_enumerate_epoch);
-
-	// save the new weights
-	net.save(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
   
+	// truncate and save the new weights
+  if(config != CONFIG::BASE)
+		net = truncate_weights(net, config);
+	net.save(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+	
 	// displays the number of bits saved thanks to the approximation
   cout << endl << "> Training terminato con successo!" << (config != CONFIG::BASE ? (" Sono stati risparmiati " + to_string(saved_bits(net, config)) + " bit") : "") << endl << endl;
-}
-
-/* Tests the network based on the selected configuration */
-void test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
-  // loads weights from existing file, if there is no file for the selected configuration it returns
-  if (exists_file(BASE_PATH + "net-weights-json_" + config)) {
-    net.load(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-    cout << "> Pesi caricati dalla memoria" << endl;
-	} else {
-    cout << "> Non e' stato trovato alcun file contenente i pesi per questa configurazione. Non e' possibile procedere con il test." << endl;
-    return;
-  }
-
-	cout << "> Test della rete iniziato" << endl;
-  // compare prediction and desired output
-  float fMaxError = 0.f;
-  for (float x = -3.1416f; x < 3.1416f; x += 0.2f) {
-    tiny_dnn::vec_t xv = {x};
-    float fPredicted   = net.predict(xv)[0];
-    float fDesired     = sinf(x);
-
-    cout << "x=" << x << " sinX=" << fDesired << " predicted=" << fPredicted << endl;
-
-    // update max error
-    float fError = fabs(fPredicted - fDesired);
-
-    if (fMaxError < fError) fMaxError = fError;
-  }
-
-  cout << endl << "max_error=" << fMaxError << endl;
-  cout << "> Test della rete completato con successo" << endl << endl;
 }
 
 /* Inizialize (train + test) the model and weights of the network on its base configuration (no approximation) */
 void inizialize_base_configuration() {
   tiny_dnn::network<tiny_dnn::sequential> net = create_network();
-  train_network(net, 10);
-  test_network(net, 10);
+  train_network(net, CONFIG::BASE, false);
+  test_network(net, CONFIG::BASE, false);
+}
+
+void automatic_test() {
+  cout << "===== Test automatico iniziato! =====" << endl;
+  tiny_dnn::network<tiny_dnn::sequential> net = create_network();
+
+	cout << endl << "CONFIGURAZIONE " << string (1, CONFIG::APPROX1) << endl;
+  net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights,tiny_dnn::file_format::json);
+  
+	// truncate and test network
+  cout << "> Troncamento e test" << endl;
+	net = truncate_weights(net, CONFIG::APPROX1);
+  test_network(net, CONFIG::APPROX1, true);
+
+	// retrain and test network
+  cout << "> Retraining e test" << endl;
+  train_network(net, CONFIG::APPROX1, true);
+  net.load(BASE_PATH + "net-weights-json_" + string (1, CONFIG::APPROX1), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+  test_network(net, CONFIG::APPROX1, true);
 }
 
 /* MAIN FUNCTION */
@@ -249,29 +287,31 @@ int main() {
 		cout << "7) Configurazione 7 (approssimazione sui neuroni degli hidden layer con 18 bit per peso e sui neuroni dei layer di input e output con 22 bit per peso)" << endl;
 		cout << "8) Configurazione 8 (approssimazione sui neuroni degli hidden layer con 14 bit per peso e sui neuroni dei layer di input e output con 22 bit per peso)" << endl;
 		cout << "9) Configurazione 9 (approssimazione sui neuroni degli hidden layer con 12 bit per peso e sui neuroni dei layer di input e output con 18 bit per peso)" << endl;
+    cout << "T) Test automatico di tutte le configurazioni (ATTENZIONE: potrebbe richiedere molto tempo)" << endl;
 		cout << "Q) Esci" << endl << endl;
 		
     cin >> input; input_config = input[0];
     if (input_config == 'q' || input_config == 'Q') return 0;
-		if (input_config < 48 || input_config > 58) continue;
+    else if (input_config == 't' || input_config == 'T') { automatic_test(); continue; }
+    else if (input_config < 48 || input_config > 58) continue;
 
 		cout << "Hai scelto la configurazione #" << input_config << ". Quale operazione vuoi eseguire?" << endl;
-		cout << "1) Allena la rete con la configurazione " << input_config << endl;
-		cout << "2) Testa la rete con la configurazione " << input_config << endl;
+		cout << "1) Allena la rete con la configurazione " << input_config << " (Allenamento rete con pesi troncati, troncamento dei nuovi pesi, salvataggio pesi)" << endl;
+		cout << "2) Testa la rete con la configurazione " << input_config << " (Test della rete con i pesi salvati)" << endl;
 		cout << "Per tornare indietro premi un tasto diverso da 1 e 2" << endl;
 		cin >> input; input_op = input[0];
 		switch (input_op) {
       case '1': 
 				if (input_config != CONFIG::BASE) {
           net = create_network();
-          train_network(net, input_config); 
+          train_network(net, input_config, false); 
         } else if (input_config == CONFIG::BASE) {
           cout << "> Non e' possibile riallenare la rete nella configurazione originale" << endl << endl;
         }
 				break;
       case '2': 
 				net = create_network();
-				test_network(net, input_config);
+				test_network(net, input_config, false);
 				break;
 			default: continue;
 		}
