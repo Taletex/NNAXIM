@@ -33,7 +33,7 @@ Not yet available
 
 ## Dependencies
 
-- `tiny-dnn (repo: https://github.com/tiny-dnn/tiny-dnn)
+- tiny-dnn (repo: https://github.com/tiny-dnn/tiny-dnn)
 
 
 ## Running for Test
@@ -44,8 +44,7 @@ You can clone this project and run it following the next steps
 - On the command line, write
   - ```bash git clone https://github.com/Taletex/Approximate-computing-on-Neural-Networks.git ```
 
-#### 4 - Build the project for Visual Studio
-- Open projects on Netbeans (Homework1, DatabaseManager, ReplicaManager)
+#### 2 - Build the project for Visual Studio
 - Start Command Prompt window (cmd.exe). 
 - On the command line, write
   - ```bash mkdir build ``` (Make build folder at the project path)
@@ -61,5 +60,5 @@ You can clone this project and run it following the next steps
 - Build Solution (F7)
 
 
-#### 5 - Run the project
+#### 3 - Run the project
 On Visual Studio (after compilation is done) you can delete all project except from the ac_nn one (you can also leave them, but if you do it you need to set the ac_nn project as the starting project). Then you can run the project simply by use "debug" or "run without debug" buttons.
