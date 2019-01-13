@@ -4,7 +4,7 @@
 using namespace std;
 
 // VARIABLES AND CONSTANTS //
-const string BASE_PATH = "../../examples/sinus_fit/";
+const string BASE_PATH = "../../ac_nn/";
 const int BASE_EPOCHS_NUMBER = 10000;
 const int EPOCHS_NUMBER = 1000;
 const int BATCH_NUMBER  = 16;

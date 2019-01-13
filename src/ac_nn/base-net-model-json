@@ -1,0 +1,38 @@
+{
+    "nodes": [
+        {
+            "type": "fully_connected",
+            "in_size": 1,
+            "out_size": 10,
+            "has_bias": true
+        },
+        {
+            "type": "tanh",
+            "in_size": {
+                "width": 10,
+                "height": 1,
+                "depth": 1
+            }
+        },
+        {
+            "type": "fully_connected",
+            "in_size": 10,
+            "out_size": 10,
+            "has_bias": true
+        },
+        {
+            "type": "tanh",
+            "in_size": {
+                "width": 10,
+                "height": 1,
+                "depth": 1
+            }
+        },
+        {
+            "type": "fully_connected",
+            "in_size": 10,
+            "out_size": 1,
+            "has_bias": true
+        }
+    ]
+}
