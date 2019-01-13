@@ -61,4 +61,4 @@ You can clone this project and run it following the next steps
 
 
 #### 3 - Run the project
-On Visual Studio (after compilation is done) you can delete all project except from the ac_nn one (you can also leave them, but if you do it you need to set the ac_nn project as the starting project). Then you can run the project simply by use "debug" or "run without debug" buttons.
+On Visual Studio (after compilation is done) you can delete all projects except from the ac_nn one (you can also leave them, but if you do it you need to set the ac_nn project as the starting project). Then you can run the project using "debug" or "run without debug" buttons.
