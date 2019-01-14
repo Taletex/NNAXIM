@@ -47,16 +47,19 @@ You can clone this project and run it following the next steps
 #### 2 - Build the project for Visual Studio
 - Start Command Prompt window (cmd.exe). 
 - On the command line, write
-  - ```mkdir build ``` (Make build folder at the project path)
-  - ```cd build ``` (Set current directory to the folder)
+```bash
+cd Approximate-computing-on-Neural-Networks/src
+mkdir build 
+cd build 
+``` 
 - Then you need to generate projects with below command (don't forget to delete CMakeCache.txt prior to running the command.)
   - Visual Studio 2015
-    - 32bit : ``` cmake -G "Visual Studio 14 2015" -DBUILD_EXAMPLES=ON .. ```
-    - 64bit : ``` cmake -G "Visual Studio 14 2015 Win64" -DBUILD_EXAMPLES=ON .. ```
+    - 32bit : ``` cmake -G "Visual Studio 14 2015" .. ```
+    - 64bit : ``` cmake -G "Visual Studio 14 2015 Win64" .. ```
   - Visual Studio 2017
-    - 32bit : ``` cmake -G "Visual Studio 15 2017" -DBUILD_EXAMPLES=ON .. ```
-    - 64bit : ``` cmake -G "Visual Studio 15 2017 Win64" -DBUILD_EXAMPLES=ON .. ```
-- Open tiny_dnn.sln file (located in build directory) with Visual Studio.
+    - 32bit : ``` cmake -G "Visual Studio 15 2017" .. ```
+    - 64bit : ``` cmake -G "Visual Studio 15 2017 Win64" .. ```
+- Open ac_nn_solution.sln file (located in build directory) with Visual Studio.
 - Build Solution (F7)
 
 
