@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "tiny_dnn/tiny_dnn.h"
 
 using namespace std;
@@ -62,8 +64,8 @@ tiny_dnn::network<tiny_dnn::sequential> create_network() {
 }
 
 
-/* Tests the network based on the selected configuration */
-void test_network(tiny_dnn::network<tiny_dnn::sequential> net,
+/* Tests the network based on the selected configuration. Returns the avg accuracy error of the nn */
+float test_network(tiny_dnn::network<tiny_dnn::sequential> net,
                   char config,
                   bool is_testing) {
   // loads weights from existing file, if there is no file for the selected
@@ -77,7 +79,7 @@ void test_network(tiny_dnn::network<tiny_dnn::sequential> net,
       cout << "> Non e' stato trovato alcun file contenente i pesi per questa "
               "configurazione. Non e' possibile procedere con il test."
            << endl;
-      return;
+      return 0;
     }
   }
 
@@ -107,24 +109,76 @@ void test_network(tiny_dnn::network<tiny_dnn::sequential> net,
   cout << endl << "  max_error=" << fMaxError << endl;
   cout << "  avg_error=" << errorSum / count << endl;
   cout << endl << "> Test della rete completato con successo" << endl << endl;
+
+	return (errorSum / count);
 }
 
+/* Sets the number of bits to be used for hidden and I/O layers for approximation in the specified configuration */
+void set_approximation_bits(int *hidden_nlayer_bits, int *extern_nlayer_bits, char config) {
+	switch (config) {
+		case CONFIG::APPROX1:
+			*hidden_nlayer_bits = 22;
+			*extern_nlayer_bits = 22;
+			break;
+		case CONFIG::APPROX2:
+			*hidden_nlayer_bits = 18;
+			*extern_nlayer_bits = 18;
+			break;
+		case CONFIG::APPROX3:
+			*hidden_nlayer_bits = 14;
+			*extern_nlayer_bits = 14;
+			break;
+		case CONFIG::APPROX4:
+			*hidden_nlayer_bits = 22;
+			*extern_nlayer_bits = 32;
+			break;
+		case CONFIG::APPROX5:
+			*hidden_nlayer_bits = 18;
+			*extern_nlayer_bits = 32;
+			break;
+		case CONFIG::APPROX6:
+			*hidden_nlayer_bits = 14;
+			*extern_nlayer_bits = 32;
+			break;
+		case CONFIG::APPROX7:
+			*hidden_nlayer_bits = 18;
+			*extern_nlayer_bits = 22;
+			break;
+		case CONFIG::APPROX8:
+			*hidden_nlayer_bits = 14;
+			*extern_nlayer_bits = 22;
+			break;
+		case CONFIG::APPROX9:
+			*hidden_nlayer_bits = 12;
+			*extern_nlayer_bits = 18;
+			break;
+		default:
+			*hidden_nlayer_bits = 32;
+			*extern_nlayer_bits = 32;
+			break;
+	}
+}
 
 /* Truncates the weights of the net passed as argument according to the selected configuration */
-// TODO: Qui approssimiamo tutti i pesi di tutti i neuroni approssimandoli a 16
-// bit. Bisogna adattare la funzione alla configurazione scelta quando useremo
-// la nostra rete
 tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
-  cout << "> Troncamento dei pesi" << endl;
+	int hidden_nlayer_bits = 32;
+	int extern_nlayer_bits = 32;
+  
+	set_approximation_bits(&hidden_nlayer_bits, &extern_nlayer_bits, config);
+
 	vector<tiny_dnn::vec_t*> weights_list;
 	for (size_t k = 0; k < net.depth(); k++) {
+		int bits = ((k==0 || k == net.depth() - 1) ? extern_nlayer_bits : hidden_nlayer_bits);
+
     weights_list = net[k]->weights();
 
-    for (size_t i = 0; i < weights_list.size(); i++) {
-      for (size_t j = 0; j < weights_list[i]->size(); j++) {
-        weights_list[i]->at(j) = roundb(weights_list[i]->at(j), 16);
-      }
-    }
+		if (bits < 32) {
+			for (size_t i = 0; i < weights_list.size(); i++) {
+				for (size_t j = 0; j < weights_list[i]->size(); j++) {
+					weights_list[i]->at(j) = roundb(weights_list[i]->at(j), bits);
+				}
+			}
+		}
   }
 
 	return net;
@@ -135,12 +189,19 @@ tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_
 // alle config)
 int saved_bits(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
   int saved_bits = 0;
-  vector<tiny_dnn::vec_t*> weights_list;
+	int hidden_nlayer_bits = 32;
+	int extern_nlayer_bits = 32;
+
+	set_approximation_bits(&hidden_nlayer_bits, &extern_nlayer_bits, config);
+
+	vector<tiny_dnn::vec_t*> weights_list;
   for (size_t k = 0; k < net.depth(); k++) {
+		int bits = ((k == 0 || k == net.depth() - 1) ? extern_nlayer_bits : hidden_nlayer_bits);
+
     weights_list = net[k]->weights();
 
     for (size_t i = 0; i < weights_list.size(); i++) {
-      saved_bits = saved_bits + weights_list[i]->size() * 16;
+      saved_bits = saved_bits + weights_list[i]->size() * (32-bits);
     }
   }
   return saved_bits;
@@ -207,14 +268,17 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
   };
 
   // on_enumerate_minibatch: this lambda function will be called after each minibatch (after weights update)
-  auto on_enumerate_minibatch = [&]() { };
+  auto on_enumerate_minibatch = [&]() {
+		if (config != CONFIG::BASE)
+			net = truncate_weights(net, config);
+	};
 
   // learn
   cout << "> Training iniziato" << endl;
   net.fit<tiny_dnn::mse>(opt, X, sinusX, batch_size, epochs, on_enumerate_minibatch, on_enumerate_epoch);
   
 	// truncate and save the new weights
-  if(config != CONFIG::BASE)
+	if (config != CONFIG::BASE)
 		net = truncate_weights(net, config);
 	net.save(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
 	
@@ -229,23 +293,67 @@ void inizialize_base_configuration() {
   test_network(net, CONFIG::BASE, false);
 }
 
+/* Saves results of test and prints them on console */
+void save_results(float avg_errors_before_retrain[], float avg_errors_after_retrain[], int saved_bits_list[], char configs[]) {
+
+	// formatting string to cout and file stream
+	cout << endl << fixed << setprecision(2) << "+ ====================================== TEST RESULTS ===================================== +" << endl;
+	cout << "| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |" << endl;
+	for (int i = 0; i < 9; i++) {
+		cout << "|" << "       " << configs[i] << "       " << "|" << "            " << ((avg_errors_before_retrain[i] / avg_errors_before_retrain[9]) * 100) << "%" << "            " << "|" << "           " << ((avg_errors_after_retrain[i] / avg_errors_after_retrain[9]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "" << endl;
+	}
+	cout << "+ ====================================== ===== ===== ====================================== +" << endl << endl << endl; 
+
+	ofstream file;
+	file.open(BASE_PATH + "log.txt");
+	file << fixed << setprecision(2) << "+ ============================================== TEST RESULTS ============================================= +\n";
+	file << "| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |\n";
+	for (int i = 0; i < (sizeof(configs) / sizeof(*configs)); i++) {
+		file << "|" << "       " << configs[i] << "       " << "|" << "            " << ((avg_errors_before_retrain[i] / avg_errors_before_retrain[9]) * 100) << "%" << "            " << "|" << "           " << ((avg_errors_after_retrain[i] / avg_errors_after_retrain[9]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "\n";
+	}
+	file << "+ ====================================== ===== ===== ====================================== +\n\n\n";
+	file.close();
+
+}
+
+/* Automatic tests all approximate network configurations */
 void automatic_test() {
   cout << "===== Test automatico iniziato! =====" << endl;
   tiny_dnn::network<tiny_dnn::sequential> net = create_network();
+	char configs[9] = { CONFIG::APPROX1, CONFIG::APPROX2, CONFIG::APPROX3, CONFIG::APPROX4, CONFIG::APPROX5, CONFIG::APPROX6, CONFIG::APPROX7, CONFIG::APPROX8, CONFIG::APPROX9 };
+	float avg_errors_before_retrain[10] = {};
+	float avg_errors_after_retrain[10] = {};
+	int saved_bits_list[10] = {};
 
-	cout << endl << "CONFIGURAZIONE " << string (1, CONFIG::APPROX1) << endl;
-  net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights,tiny_dnn::file_format::json);
-  
-	// truncate and test network
-  cout << "> Troncamento e test" << endl;
-	net = truncate_weights(net, CONFIG::APPROX1);
-  test_network(net, CONFIG::APPROX1, true);
+	// settings metrics for base configuration
+	cout << "CONFIGURAZIONE ORIGINALE" << endl;
+	avg_errors_before_retrain[9] = test_network(net, CONFIG::BASE, false);
+	avg_errors_after_retrain[9] = avg_errors_before_retrain[9];
+	saved_bits_list[9] = 0;
+	cout << "-----------------------------------------------------" << endl;
 
-	// retrain and test network
-  cout << "> Retraining e test" << endl;
-  train_network(net, CONFIG::APPROX1, true);
-  net.load(BASE_PATH + "net-weights-json_" + string (1, CONFIG::APPROX1), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-  test_network(net, CONFIG::APPROX1, true);
+	// settings metrics for approximated configurations
+	for (int i = 0; i < (sizeof(configs)/sizeof(*configs)); i++) {
+		cout << endl << "CONFIGURAZIONE " << string(1, configs[i]) << endl;
+		net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+
+		// truncate and test network
+		cout << "> Troncamento e test" << endl;
+		net = truncate_weights(net, configs[i]);
+		avg_errors_before_retrain[i] = test_network(net, configs[i], true);
+
+		// retrain and test network
+		cout << "> Retraining e test" << endl;
+		train_network(net, configs[i], true);
+		net.load(BASE_PATH + "net-weights-json_" + string(1, configs[i]), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+		avg_errors_after_retrain[i] = test_network(net, configs[i], true);
+		saved_bits_list[i] = saved_bits(net, configs[i]);
+		cout << "Sono stati risparmiati " + to_string(saved_bits_list[i]) + " bit" << endl;
+
+		cout << "-----------------------------------------------------" << endl;
+	}
+	
+	save_results(avg_errors_before_retrain, avg_errors_after_retrain, saved_bits_list, configs);
 }
 
 /* MAIN FUNCTION */
