@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 # Set variables:
 #   * PROJECT_NAME
 #   * PROJECT_VERSION
-project(tiny_dnn VERSION 1.0.0 LANGUAGES C CXX)
+project(ac_nn_solution VERSION 1.0.0 LANGUAGES C CXX)
 
 #####
 # Enables link_directories() treat paths relative
@@ -61,7 +61,7 @@ option(USE_IMAGE_API  "Build tiny-dnn with Image API support"              ON)
 option(USE_GEMMLOWP   "Build tiny-dnn with gemmlowp support"               OFF)
 
 option(BUILD_TESTS      "Set to ON to build tests"              OFF)
-option(BUILD_EXAMPLES   "Set to ON to build examples"           OFF)
+option(BUILD_EXAMPLES   "Set to ON to build examples"           ON)
 option(BUILD_DOCS       "Set to ON to build documentation"      OFF)
 option(BUILD_BENCHMARKS "Set to ON to build benchmarks"         OFF)
 option(COVERALLS        "Set to ON to build with code coverage" OFF)
