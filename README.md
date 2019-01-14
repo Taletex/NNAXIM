@@ -42,20 +42,20 @@ You can clone this project and run it following the next steps
 #### 1 - Clone the project from develop branch
 - Start Command Prompt window (cmd.exe).
 - On the command line, write
-  - ```bash git clone https://github.com/Taletex/Approximate-computing-on-Neural-Networks.git ```
+  - ```git clone https://github.com/Taletex/Approximate-computing-on-Neural-Networks.git ```
 
 #### 2 - Build the project for Visual Studio
 - Start Command Prompt window (cmd.exe). 
 - On the command line, write
-  - ```bash mkdir build ``` (Make build folder at the project path)
-  - ```bash cd build ``` (Set current directory to the folder)
+  - ```mkdir build ``` (Make build folder at the project path)
+  - ```cd build ``` (Set current directory to the folder)
 - Then you need to generate projects with below command (don't forget to delete CMakeCache.txt prior to running the command.)
   - Visual Studio 2015
-    - 32bit : cmake -G "Visual Studio 14 2015" -DBUILD_EXAMPLES=ON ..
-    - 64bit : cmake -G "Visual Studio 14 2015 Win64" -DBUILD_EXAMPLES=ON ..
+    - 32bit : ``` cmake -G "Visual Studio 14 2015" -DBUILD_EXAMPLES=ON .. ```
+    - 64bit : ``` cmake -G "Visual Studio 14 2015 Win64" -DBUILD_EXAMPLES=ON .. ```
   - Visual Studio 2017
-    - 32bit : cmake -G "Visual Studio 15 2017" -DBUILD_EXAMPLES=ON ..
-    - 64bit : cmake -G "Visual Studio 15 2017 Win64" -DBUILD_EXAMPLES=ON ..
+    - 32bit : ``` cmake -G "Visual Studio 15 2017" -DBUILD_EXAMPLES=ON .. ```
+    - 64bit : ``` cmake -G "Visual Studio 15 2017 Win64" -DBUILD_EXAMPLES=ON .. ```
 - Open tiny_dnn.sln file (located in build directory) with Visual Studio.
 - Build Solution (F7)
 
