@@ -25,8 +25,9 @@ int main() {
 	// Menu
 	while (true) {
 
+		cout << endl << endl;
 		cout << "+----------------------------------------------------------------------------------------------+" << endl;
-		cout << "|                                 BENVENUTO IN AC NN SIMULATOR                                 |" << endl;
+		cout << "|                                 BENVENUTO IN NNAXIM                                          |" << endl;
 		cout << "+----------------------------------------------------------------------------------------------+" << endl;
 		cout << "|Seleziona una configurazione della rete su cui lavorare:                                      |" << endl;
 		cout << "| 0) Configurazione originale (nessuna approssimazione)                                        |" << endl;
@@ -49,7 +50,7 @@ int main() {
 		else if (input_config < 48 || input_config > 58) continue;
 
 		cout << "Hai scelto la configurazione #" << input_config << ". Quale operazione vuoi eseguire?" << endl;
-		cout << "1) Allena la rete con la configurazione " << input_config << ". Ciò comporta i seguenti passi:" << endl << "   - allenamento rete con pesi troncati;" << endl << "   - troncamento dei nuovi pesi;" << endl << "   - salvataggio dei nuovi pesi su file." << endl;
+		cout << "1) Allena la rete con la configurazione " << input_config << ". Cio' comporta i seguenti passi:" << endl << "   - allenamento rete con pesi troncati;" << endl << "   - troncamento dei nuovi pesi;" << endl << "   - salvataggio dei nuovi pesi su file." << endl;
 		cout << "2) Testa la rete con la configurazione " << input_config << " (Test della rete con i pesi salvati)" << endl;
 		cout << "Per tornare indietro premi un tasto diverso da 1 e 2" << endl;
 		

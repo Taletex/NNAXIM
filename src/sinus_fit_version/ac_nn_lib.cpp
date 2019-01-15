@@ -175,8 +175,6 @@ tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_
 }
 
 /* Returns the number of bits saved thanks to the approximation in the weights bit size */
-// TODO: DA ADATTARE ALLE VARIE CONFIG (devi cambiare il numero di bit in base
-// alle config)
 int saved_bits(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
   int saved_bits = 0;
 	int hidden_nlayer_bits = 32;

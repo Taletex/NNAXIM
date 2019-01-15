@@ -1,4 +1,10 @@
 #include "ac_nn_lib.hh"
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <stdlib.h>
+#include <cstdlib>
+#include <vector>
 
 using namespace std;
 
@@ -27,39 +33,53 @@ bool exists_file(const string& name) {
   }
 }
 
-/* If a file containing the model of the network exists load the network from this file, else create a new model for the network. Finally it returns the network. */
+/* If a file containing the model of the network exists load the network from this file, else create a new model for the network. Finally it returns the network */
 tiny_dnn::network<tiny_dnn::sequential> create_network() {
   tiny_dnn::network<tiny_dnn::sequential> net;
 
-	if (exists_file(BASE_PATH + "base-net-model-json")) {
+	if (exists_file(BASE_PATH + "base-net-model-training-json")) {
     // load the network from existing file
-    net.load(BASE_PATH + "base-net-model-json", tiny_dnn::content_type::model,
+    net.load(BASE_PATH + "base-net-model-training-json", tiny_dnn::content_type::model,
              tiny_dnn::file_format::json);
     cout << "> Rete caricata dal modello salvato" << endl;
 	}
 	else {
-    // create a simple network with 2 layer of 10 neurons each
-    net << tiny_dnn::fully_connected_layer(1, 10);
-    net << tiny_dnn::tanh_layer();
-    net << tiny_dnn::fully_connected_layer(10, 10);
-    net << tiny_dnn::tanh_layer();
-    net << tiny_dnn::fully_connected_layer(10, 1);
+    // create the cnn
+		using conv = tiny_dnn::convolutional_layer;
+		using pool = tiny_dnn::max_pooling_layer;
+		using fc = tiny_dnn::fully_connected_layer;
+		using relu = tiny_dnn::relu_layer;
+		using softmax = tiny_dnn::softmax_layer;
 
-    net.save(BASE_PATH + "base-net-model-json", tiny_dnn::content_type::model, tiny_dnn::file_format::json);
+		const size_t n_fmaps = 32;		// number of feature maps for upper layer
+		const size_t n_fmaps2 = 64;		// number of feature maps for lower layer
+		const size_t n_fc = 64;				// number of hidden units in fc layer
+		
+		net << conv(32, 32, 5, 3, n_fmaps, tiny_dnn::padding::same, true, 1, 1, 1, 1, BACKEND_TYPE)					// C1
+				<< pool(32, 32, n_fmaps, 2, false, BACKEND_TYPE)																								// P2
+				<< relu()																																												// activation
+				<< conv(16, 16, 5, n_fmaps, n_fmaps, tiny_dnn::padding::same, true, 1, 1, 1, 1, BACKEND_TYPE)		// C3
+				<< pool(16, 16, n_fmaps, 2, false, BACKEND_TYPE)																								// P4
+				<< relu()																																												// activation
+				<< conv(8, 8, 5, n_fmaps, n_fmaps2, tiny_dnn::padding::same, true, 1, 1, 1, 1, BACKEND_TYPE)    // C5
+				<< pool(8, 8, n_fmaps2, 2, false, BACKEND_TYPE)																									// P6
+				<< relu()																																												// activation
+				<< fc(4 * 4 * n_fmaps2, n_fc, true, BACKEND_TYPE)																								// FC7
+				<< relu()																																												// activation
+				<< fc(n_fc, 10, true, BACKEND_TYPE) << softmax(10);																							// FC10
 
-		cout << "> Rete creata con successo (non e' stato trovato nessun modello salvato della rete)" << endl;
+    net.save(BASE_PATH + "base-net-model-training-json", tiny_dnn::content_type::model, tiny_dnn::file_format::json);
+
+		cout << "> Rete creata con successo (non era stato trovato nessun modello salvato della rete)" << endl;
   }
 
   return net;
 }
 
-
 /* Tests the network based on the selected configuration. Returns the avg accuracy error of the nn */
-float test_network(tiny_dnn::network<tiny_dnn::sequential> net,
-                  char config,
-                  bool is_testing) {
-  // loads weights from existing file, if there is no file for the selected
-  // configuration it returns
+float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool is_testing) {
+  
+	// loads weights from existing file, if there is no file for the selected configuration it returns
   if (!is_testing) {
     if (exists_file(BASE_PATH + "net-weights-json_" + config)) {
       net.load(BASE_PATH + "net-weights-json_" + config,
@@ -73,34 +93,17 @@ float test_network(tiny_dnn::network<tiny_dnn::sequential> net,
     }
   }
 
-  cout << "> Test della rete iniziato" << endl;
-  // compare prediction and desired output
-  float fMaxError = 0.f;
-  float errorSum  = 0.f;
-  float count     = 0.f;
-  for (float x = -3.1416f; x < 3.1416f; x += 0.2f) {
-    tiny_dnn::vec_t xv = {x};
-    float fPredicted   = net.predict(xv)[0];
-    float fDesired     = sinf(x);
+	// carico le immagini
+	cout << "> Caricamento dataset di test iniziato" << endl;
+	std::vector<tiny_dnn::label_t> test_labels;
+	std::vector<tiny_dnn::vec_t> test_images;
+	parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
 
-    cout << "  x=" << x << " sinX=" << fDesired << " predicted=" << fPredicted
-         << endl;
+	// test and show results
+	cout << "> Test della rete iniziato" << endl;
+	net.test(test_images, test_labels).print_detail(std::cout);
 
-    float fError = fabs(fPredicted - fDesired);
-
-    // update max error
-    if (fMaxError < fError) fMaxError = fError;
-
-    // update avg error
-    errorSum = errorSum + fError;
-    count++;
-  }
-
-  cout << endl << "  max_error=" << fMaxError << endl;
-  cout << "  avg_error=" << errorSum / count << endl;
-  cout << endl << "> Test della rete completato con successo" << endl << endl;
-
-	return (errorSum / count);
+	return 0;
 }
 
 /* Sets the number of bits to be used for hidden and I/O layers for approximation in the specified configuration */
@@ -175,8 +178,6 @@ tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_
 }
 
 /* Returns the number of bits saved thanks to the approximation in the weights bit size */
-// TODO: DA ADATTARE ALLE VARIE CONFIG (devi cambiare il numero di bit in base
-// alle config)
 int saved_bits(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
   int saved_bits = 0;
 	int hidden_nlayer_bits = 32;
@@ -229,43 +230,53 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 		}
 	}
 	
-  // create input and desired output on a period (dataset di training)
-  vector<tiny_dnn::vec_t> X;
-  vector<tiny_dnn::vec_t> sinusX;
-  for (float x = -3.1416f; x < 3.1416f; x += 0.2f) {
-    tiny_dnn::vec_t vx    = {x};
-    tiny_dnn::vec_t vsinx = {sinf(x)};
-
-    X.push_back(vx);
-    sinusX.push_back(vsinx);
-  }
 
   // set learning parameters
-  size_t batch_size = BATCH_NUMBER;		// n samples for each network weight update
+  size_t batch_size = BATCH_NUMBER;																										// n samples for each network weight update
   int epochs        = (config == CONFIG::BASE) ? BASE_EPOCHS_NUMBER : EPOCHS_NUMBER;  // m presentation of all samples
-  tiny_dnn::adamax opt;								// optimizer
+  tiny_dnn::adam optimizer;																																	// optimizer
   cout << "> Parametri per il training impostati: batch size " << batch_size << " - epoche " << epochs << endl;
 
-  // on_enumerate_epoch: this lambda function will be called after each epoch
-  int iEpoch = 0;
-  auto on_enumerate_epoch = [&]() {
-    // compute loss and disp 1/100 of the time
-    iEpoch++;
-    if (iEpoch % 100) return;
 
-    double loss = net.get_loss<tiny_dnn::mse>(X, sinusX);
-    cout << "  epoch=" << iEpoch << "/" << epochs << " loss=" << loss << endl;
+	// load cifar dataset
+	cout << "> Caricamento cifar dataset" << endl;
+	vector<tiny_dnn::label_t> train_labels, test_labels;
+	vector<tiny_dnn::vec_t> train_images, test_images;
+
+	for (int i = 1; i <= 5; i++) {
+		parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/data_batch_" + std::to_string(i) + ".bin", &train_images, &train_labels, -1.0, 1.0, 0, 0);
+	}
+	parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
+	cout << "> Caricamento cifar dataset completato" << endl;
+	cout << "> Training iniziato" << endl;
+
+	// inizialize display, timer and optimizer variables
+	tiny_dnn::progress_display disp(train_images.size());
+	tiny_dnn::timer t;
+	optimizer.alpha *= static_cast<tiny_dnn::float_t>(sqrt(BATCH_NUMBER) * LEARNING_RATE);
+
+  // on_enumerate_epoch: this lambda function will be called after each epoch
+  int epoch = 1;
+  auto on_enumerate_epoch = [&]() {
+		std::cout << "Epoca " << epoch << "/" << BASE_EPOCHS_NUMBER << " completata. "
+			<< t.elapsed() << "s trascorsi. Inizio test." << std::endl;
+		++epoch;
+		tiny_dnn::result res = net.test(test_images, test_labels);
+		cout << res.num_success << "/" << res.num_total << std::endl;
+
+		disp.restart(train_images.size());
+		t.restart();
   };
 
   // on_enumerate_minibatch: this lambda function will be called after each minibatch (after weights update)
   auto on_enumerate_minibatch = [&]() {
+		disp += BATCH_NUMBER;
 		if (config != CONFIG::BASE)
 			net = truncate_weights(net, config);
 	};
 
   // learn
-  cout << "> Training iniziato" << endl;
-  net.fit<tiny_dnn::mse>(opt, X, sinusX, batch_size, epochs, on_enumerate_minibatch, on_enumerate_epoch);
+	net.train<tiny_dnn::cross_entropy>(optimizer, train_images, train_labels, BATCH_NUMBER, BASE_EPOCHS_NUMBER, on_enumerate_minibatch, on_enumerate_epoch);
   
 	// truncate and save the new weights
 	if (config != CONFIG::BASE)
@@ -278,9 +289,9 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 
 /* Inizialize (train + test) the model and weights of the network on its base configuration (no approximation) */
 void inizialize_base_configuration() {
-  tiny_dnn::network<tiny_dnn::sequential> net = create_network();
+  // train network
+	tiny_dnn::network<tiny_dnn::sequential> net = create_network();
   train_network(net, CONFIG::BASE, false);
-  test_network(net, CONFIG::BASE, false);
 }
 
 /* Saves results of test and prints them on console */
@@ -331,7 +342,7 @@ void automatic_test() {
 		cout << "> Troncamento e test" << endl;
 		net = truncate_weights(net, configs[i]);
 		avg_errors_before_retrain[i] = test_network(net, configs[i], true);
-
+	
 		// retrain and test network
 		cout << "> Retraining e test" << endl;
 		train_network(net, configs[i], true);
