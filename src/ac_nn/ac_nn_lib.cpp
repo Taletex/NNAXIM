@@ -76,7 +76,7 @@ tiny_dnn::network<tiny_dnn::sequential> create_network() {
   return net;
 }
 
-/* Tests the network based on the selected configuration. Returns the avg accuracy error of the nn */
+/* Tests the network based on the selected configuration. Returns the classification accuracy of the nn */
 float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool is_testing) {
   
 	// loads weights from existing file, if there is no file for the selected configuration it returns
