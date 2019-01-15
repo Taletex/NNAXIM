@@ -15,8 +15,6 @@ const enum CONFIG : char { BASE = '0', APPROX1 = '1', APPROX2 = '2', APPROX3 = '
 // FUNCTIONS DECLARATION //
 bool exists_file(const string& name);
 
-tiny_dnn::network<tiny_dnn::sequential> create_network_for_training();
-
 tiny_dnn::network<tiny_dnn::sequential> create_network();
 
 float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool is_testing);
@@ -31,6 +29,6 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 
 void inizialize_base_configuration();
 
-void save_results(float avg_errors_before_retrain[], float avg_errors_after_retrain[], int saved_bits_list[], char configs[]);
+void save_results(float accuracy_before_retrain[], float accuracy_after_retrain[], int saved_bits_list[], char configs[]);
 
 void automatic_test();

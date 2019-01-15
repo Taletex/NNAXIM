@@ -101,9 +101,10 @@ float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 
 	// test and show results
 	cout << "> Test della rete iniziato" << endl;
-	net.test(test_images, test_labels).print_detail(std::cout);
+	tiny_dnn::result res = net.test(test_images, test_labels);
+	res.print_detail(std::cout);
 
-	return 0;
+	return ((float) res.num_success/ (float) res.num_total);
 }
 
 /* Sets the number of bits to be used for hidden and I/O layers for approximation in the specified configuration */
@@ -295,13 +296,13 @@ void inizialize_base_configuration() {
 }
 
 /* Saves results of test and prints them on console */
-void save_results(float avg_errors_before_retrain[], float avg_errors_after_retrain[], int saved_bits_list[], char configs[]) {
+void save_results(float accuracy_before_retrain[], float accuracy_after_retrain[], int saved_bits_list[], char configs[]) {
 
 	// formatting string to cout and file stream
 	cout << endl << fixed << setprecision(2) << "+ ====================================== TEST RESULTS ===================================== +" << endl;
 	cout << "| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |" << endl;
 	for (int i = 0; i < 9; i++) {
-		cout << "|" << "       " << configs[i] << "       " << "|" << "            " << ((avg_errors_before_retrain[i] / avg_errors_before_retrain[9]) * 100) << "%" << "            " << "|" << "           " << ((avg_errors_after_retrain[i] / avg_errors_after_retrain[9]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "" << endl;
+		cout << "|" << "       " << configs[i] << "       " << "|" << "            " << ((accuracy_before_retrain[9] - accuracy_before_retrain[i]) * 100) << "%" << "            " << "|" << "           " << ((accuracy_after_retrain[9] - accuracy_after_retrain[i]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "" << endl;
 	}
 	cout << "+ ====================================== ===== ===== ====================================== +" << endl << endl << endl; 
 
@@ -310,7 +311,7 @@ void save_results(float avg_errors_before_retrain[], float avg_errors_after_retr
 	file << fixed << setprecision(2) << "+ ============================================== TEST RESULTS ============================================= +\n";
 	file << "| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |\n";
 	for (int i = 0; i < (sizeof(configs) / sizeof(*configs)); i++) {
-		file << "|" << "       " << configs[i] << "       " << "|" << "            " << ((avg_errors_before_retrain[i] / avg_errors_before_retrain[9]) * 100) << "%" << "            " << "|" << "           " << ((avg_errors_after_retrain[i] / avg_errors_after_retrain[9]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "\n";
+		file << "|" << "       " << configs[i] << "       " << "|" << "            " << ((accuracy_before_retrain[9] - accuracy_before_retrain[i]) * 100) << "%" << "            " << "|" << "           " << ((accuracy_after_retrain[9] - accuracy_after_retrain[i]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "\n";
 	}
 	file << "+ ====================================== ===== ===== ====================================== +\n\n\n";
 	file.close();
@@ -322,14 +323,14 @@ void automatic_test() {
   cout << "===== Test automatico iniziato! =====" << endl;
   tiny_dnn::network<tiny_dnn::sequential> net = create_network();
 	char configs[9] = { CONFIG::APPROX1, CONFIG::APPROX2, CONFIG::APPROX3, CONFIG::APPROX4, CONFIG::APPROX5, CONFIG::APPROX6, CONFIG::APPROX7, CONFIG::APPROX8, CONFIG::APPROX9 };
-	float avg_errors_before_retrain[10] = {};
-	float avg_errors_after_retrain[10] = {};
+	float accuracy_before_retrain[10] = {};
+	float accuracy_after_retrain[10] = {};
 	int saved_bits_list[10] = {};
 
 	// settings metrics for base configuration
 	cout << "CONFIGURAZIONE ORIGINALE" << endl;
-	avg_errors_before_retrain[9] = test_network(net, CONFIG::BASE, false);
-	avg_errors_after_retrain[9] = avg_errors_before_retrain[9];
+	accuracy_before_retrain[9] = test_network(net, CONFIG::BASE, false);
+	accuracy_after_retrain[9] = accuracy_before_retrain[9];
 	saved_bits_list[9] = 0;
 	cout << "-----------------------------------------------------" << endl;
 
@@ -341,19 +342,19 @@ void automatic_test() {
 		// truncate and test network
 		cout << "> Troncamento e test" << endl;
 		net = truncate_weights(net, configs[i]);
-		avg_errors_before_retrain[i] = test_network(net, configs[i], true);
+		accuracy_before_retrain[i] = test_network(net, configs[i], true);
 	
 		// retrain and test network
 		cout << "> Retraining e test" << endl;
 		train_network(net, configs[i], true);
 		net.load(BASE_PATH + "net-weights-json_" + string(1, configs[i]), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-		avg_errors_after_retrain[i] = test_network(net, configs[i], true);
+		accuracy_after_retrain[i] = test_network(net, configs[i], true);
 		saved_bits_list[i] = saved_bits(net, configs[i]);
 		cout << "Sono stati risparmiati " + to_string(saved_bits_list[i]) + " bit" << endl;
 
 		cout << "-----------------------------------------------------" << endl;
 	}
 	
-	save_results(avg_errors_before_retrain, avg_errors_after_retrain, saved_bits_list, configs);
+	save_results(accuracy_before_retrain, accuracy_after_retrain, saved_bits_list, configs);
 }
 
