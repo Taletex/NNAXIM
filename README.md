@@ -45,7 +45,7 @@ You can clone this project and run it following the next steps
   - ```git clone https://github.com/Taletex/Approximate-computing-on-Neural-Networks.git ```
   
   
-#### 2 - Donwload the CIFAR10 datasets
+#### 2 - Download the CIFAR10 datasets
 - Download the binary dataset, available at: https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz
 - Move the downloaded archive to src/ac_nn
 - Extract it in that location, you should see a folder named 'cifar-10-batches-bin' in src/ac_nn
