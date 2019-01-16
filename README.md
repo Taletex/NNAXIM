@@ -43,8 +43,14 @@ You can clone this project and run it following the next steps
 - Start Command Prompt window (cmd.exe).
 - On the command line, write
   - ```git clone https://github.com/Taletex/Approximate-computing-on-Neural-Networks.git ```
+  
+  
+#### 2 - Download the CIFAR10 datasets
+- Download the binary dataset, available at: https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz
+- Move the downloaded archive to src/ac_nn
+- Extract it in that location, you should see a folder named 'cifar-10-batches-bin' in src/ac_nn
 
-#### 2 - Build the project for Visual Studio
+#### 3 - Build the project for Visual Studio
 - Start Command Prompt window (cmd.exe). 
 - On the command line, write
 ```bash
@@ -62,6 +68,5 @@ cd build
 - Open ac_nn_solution.sln file (located in build directory) with Visual Studio.
 - Build Solution (F7)
 
-
-#### 3 - Run the project
+#### 4 - Run the project
 On Visual Studio (after compilation is done) you can delete all projects except from the ac_nn one (you can also leave them, but if you do it you need to set the ac_nn project as the starting project). Then you can run the project using "debug" or "run without debug" buttons.

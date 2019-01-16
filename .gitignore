@@ -1,2 +1,3 @@
 # Directories
 src/build
+src/ac_nn/cifar-10-batches-bin
