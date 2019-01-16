@@ -8,18 +8,17 @@
 
 using namespace std;
 
-// FUNCTIONS //
 /* roundb(f, 15) => keep 15 bits in the float, set the other bits to zero */
 float roundb(float f, int bits) {
-  union {
+  union {															// num.i and num.f are mapped on same bits
     int i;
     float f;
   } num;
 
-  bits  = 32 - bits;									// assuming sizeof(int) == sizeof(float) == 4
+  bits  = 32 - bits;									
   num.f = f;
   num.i = num.i + (1 << (bits - 1));  // round instead of truncate
-  num.i = num.i & (-1 << bits);
+  num.i = num.i & (-1 << bits);				// AND bitwise between mask and rounded value
   return num.f;
 }
 
@@ -86,9 +85,7 @@ float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
                tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
       cout << "> Pesi caricati dalla memoria" << endl;
     } else {
-      cout << "> Non e' stato trovato alcun file contenente i pesi per questa "
-              "configurazione. Non e' possibile procedere con il test."
-           << endl;
+      cout << "> Non e' stato trovato alcun file contenente i pesi per questa configurazione. Non e' possibile procedere con il test." << endl;
       return 0;
     }
   }
@@ -230,16 +227,14 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 			net = truncate_weights(net, config);
 		}
 	}
-	
 
   // set learning parameters
-  size_t batch_size = BATCH_NUMBER;																										// n samples for each network weight update
-  int epochs        = (config == CONFIG::BASE) ? BASE_EPOCHS_NUMBER : EPOCHS_NUMBER;  // m presentation of all samples
+  size_t batch_size = BATCH_NUMBER;																													// n samples for each network weight update
+  int epochs        = (config == CONFIG::BASE) ? BASE_EPOCHS_NUMBER : EPOCHS_NUMBER;				// m presentation of all samples
   tiny_dnn::adam optimizer;																																	// optimizer
   cout << "> Parametri per il training impostati: batch size " << batch_size << " - epoche " << epochs << endl;
 
-
-	// load cifar dataset
+	// load cifar10 dataset
 	cout << "> Caricamento cifar dataset" << endl;
 	vector<tiny_dnn::label_t> train_labels, test_labels;
 	vector<tiny_dnn::vec_t> train_images, test_images;
