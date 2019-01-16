@@ -54,7 +54,7 @@ You can clone this project and run it following the next steps
 - Start Command Prompt window (cmd.exe). 
 - On the command line, write
 ```bash
-cd Approximate-computing-on-Neural-Networks/src
+cd NNAXIM/src
 mkdir build 
 cd build 
 ``` 
