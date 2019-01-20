@@ -254,7 +254,7 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
   // on_enumerate_epoch: this lambda function will be called after each epoch
   int epoch = 1;
   auto on_enumerate_epoch = [&]() {
-		std::cout << "Epoca " << epoch << "/" << BASE_EPOCHS_NUMBER << " completata. "
+		std::cout << "Epoca " << epoch << "/" << epochs << " completata. "
 			<< t.elapsed() << "s trascorsi. Inizio test." << std::endl;
 		++epoch;
 		tiny_dnn::result res = net.test(test_images, test_labels);
@@ -272,7 +272,7 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 	};
 
   // learn
-	net.train<tiny_dnn::cross_entropy>(optimizer, train_images, train_labels, BATCH_NUMBER, BASE_EPOCHS_NUMBER, on_enumerate_minibatch, on_enumerate_epoch);
+	net.train<tiny_dnn::cross_entropy>(optimizer, train_images, train_labels, BATCH_NUMBER, epochs, on_enumerate_minibatch, on_enumerate_epoch);
   
 	// truncate and save the new weights
 	if (config != CONFIG::BASE)
