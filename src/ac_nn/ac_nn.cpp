@@ -31,43 +31,41 @@ int main() {
 		cout << "+----------------------------------------------------------------------------------------------+" << endl;
 		cout << "|Seleziona una configurazione della rete su cui lavorare:                                      |" << endl;
 		cout << "| 0) Configurazione originale (nessuna approssimazione)                                        |" << endl;
-		cout << "| 1) Configurazione 1 (22 bit per tutti i neuroni della rete)                                  |" << endl;
-		cout << "| 2) Configurazione 2 (18 bit per tutti i neuroni della rete)                                  |" << endl;
-		cout << "| 3) Configurazione 3 (14 bit per tutti i neuroni della rete)                                  |" << endl;
-		cout << "| 4) Configurazione 4 (22 bit per i neuroni degli hidden layer)                                |" << endl;
-		cout << "| 5) Configurazione 5 (18 bit per i neuroni degli hidden layer)                                |" << endl;
-		cout << "| 6) Configurazione 6 (14 bit per i neuroni degli hidden layer)                                |" << endl;
-		cout << "| 7) Configurazione 7 (18 bit per i neuroni degli hidden layer, 22 per quelli degli I/O layer) |" << endl;
-		cout << "| 8) Configurazione 8 (14 bit per i neuroni degli hidden layer, 22 per quelli degli I/O layer) |" << endl;
-		cout << "| 9) Configurazione 9 (12 bit per i neuroni degli hidden layer, 18 per quelli degli I/O layer) |" << endl;
-		cout << "| T) Test automatico di tutte le configurazioni (WARNING: potrebbe richiedere molto tempo)     |" << endl;
+		cout << "| 1) Configurazione 1 (16 bit per tutti i neuroni della rete)                                  |" << endl;
+		cout << "| 2) Configurazione 2 (13 bit per tutti i neuroni della rete)                                  |" << endl;
+		cout << "| 3) Configurazione 3 (11 bit per tutti i neuroni della rete)                                  |" << endl;
+		cout << "| 4) Configurazione 4 (16 bit per i neuroni degli hidden layer)                                |" << endl;
+		cout << "| 5) Configurazione 5 (13 bit per i neuroni degli hidden layer)                                |" << endl;
+		cout << "| 6) Configurazione 6 (11 bit per i neuroni degli hidden layer)                                |" << endl;
+		cout << "| 7) Configurazione 7 (16 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |" << endl;
+		cout << "| 8) Configurazione 8 (13 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |" << endl;
+		cout << "| 9) Configurazione 9 (10 bit per i neuroni degli hidden layer, 13 per quelli degli I/O layer) |" << endl;
+		cout << "| T) Test automatico di tutte le configurazioni                                                |" << endl;
+		cout << "| A) Esecuzione dell'algoritmo di approximate computing per tutte le configurazioni            |" << endl;
 		cout << "| Q) Esci                                                                                      |" << endl;
 		cout << "+----------------------------------------------------------------------------------------------+" << endl << endl;
 
 		cin >> input; input_config = input[0];
 		if (input_config == 'q' || input_config == 'Q') return 0;
 		else if (input_config == 't' || input_config == 'T') { automatic_test(); continue; }
+		else if (input_config == 'a' || input_config == 'A') { ac_nn_test(); continue; }
 		else if (input_config < 48 || input_config > 58) continue;
 
 		cout << "Hai scelto la configurazione #" << input_config << ". Quale operazione vuoi eseguire?" << endl;
-		cout << "1) Allena la rete con la configurazione " << input_config << ". Cio' comporta i seguenti passi:" << endl << "   - allenamento rete con pesi approssimati;" << endl << "   - troncamento dei nuovi pesi;" << endl << "   - salvataggio dei nuovi pesi su file." << endl;
+		if (input_config != CONFIG::BASE) { cout << "1) Allena la rete con la configurazione " << input_config << ". Cio' comporta i seguenti passi:" << endl << "   - allenamento rete con pesi approssimati;" << endl << "   - troncamento dei nuovi pesi;" << endl << "   - salvataggio dei nuovi pesi su file." << endl; }
+		if (input_config == CONFIG::BASE) { cout << "1) Allena la rete con la configurazione " << input_config << endl; }
 		cout << "2) Testa la rete con la configurazione " << input_config << " (Test della rete con i pesi salvati)" << endl;
 		cout << "Per tornare indietro premi un tasto diverso da 1 e 2" << endl;
 		
 		cin >> input; input_op = input[0];
 		switch (input_op) {
 		case '1':
-			if (input_config != CONFIG::BASE) {
-				net = create_network();
-				train_network(net, input_config, false);
-			}
-			else if (input_config == CONFIG::BASE) {
-				cout << "> Non e' possibile riallenare la rete nella configurazione originale" << endl << endl;
-			}
+			net = create_network();
+			train_network(net, input_config, false, vector<tiny_dnn::vec_t>(), vector<tiny_dnn::label_t>(), vector<tiny_dnn::vec_t>(), vector<tiny_dnn::label_t>());
 			break;
 		case '2':
 			net = create_network();
-			test_network(net, input_config, false);
+			test_network(net, input_config, false, std::vector<tiny_dnn::vec_t>(), std::vector<tiny_dnn::label_t>());
 			break;
 		default: continue;
 		}

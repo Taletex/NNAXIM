@@ -76,30 +76,37 @@ tiny_dnn::network<tiny_dnn::sequential> create_network() {
 }
 
 /* Tests the network based on the selected configuration. Returns the classification accuracy of the nn */
-float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool is_testing) {
+float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool exec_ac, vector<tiny_dnn::vec_t> p_test_images, vector<tiny_dnn::label_t> p_test_labels) {
   
-	// loads weights from existing file, if there is no file for the selected configuration it returns
-  if (!is_testing) {
+  // loads weights from existing file, if there is no file for the selected configuration asks to the user if he want to load original configuration's weights in order to approximate them and test the network
+  if (!exec_ac) {
     if (exists_file(BASE_PATH + "net-weights-json_" + config)) {
       net.load(BASE_PATH + "net-weights-json_" + config,
                tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
       cout << "> Pesi caricati dalla memoria" << endl;
     } else {
-      cout << "> Non e' stato trovato alcun file contenente i pesi per questa configurazione. Non e' possibile procedere con il test." << endl;
-      return 0;
+      cout << "> Non e' stato trovato alcun file contenente i pesi per questa configurazione." << endl;
+			cout << "> I pesi della configurazione originali saranno prelevati e approssimati per procedere con il test della configurazione " << config << endl;
+			net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+			net = approximate_weights(net, config);
+			net.save(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
     }
   }
 
-	// carico le immagini
-	cout << "> Caricamento dataset di test iniziato" << endl;
-	std::vector<tiny_dnn::label_t> test_labels;
-	std::vector<tiny_dnn::vec_t> test_images;
-	parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
+	// load images from test dataset
+	vector<tiny_dnn::vec_t> test_images;
+	vector<tiny_dnn::label_t> test_labels;
+	bool dataset_yet_loaded = (!p_test_images.empty() && !p_test_labels.empty());
+	if (!dataset_yet_loaded) {
+		cout << "> Caricamento dataset di test iniziato" << endl;
+		parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
+		cout << "> Dataset di test caricato" << endl;
+	}
 
 	// test and show results
 	cout << "> Test della rete iniziato" << endl;
-	tiny_dnn::result res = net.test(test_images, test_labels);
-	res.print_detail(std::cout);
+	tiny_dnn::result res = net.test((dataset_yet_loaded ? p_test_images : test_images), (dataset_yet_loaded ? p_test_labels : test_labels));
+	res.print_detail(cout);
 
 	return ((float) res.num_success/ (float) res.num_total);
 }
@@ -108,40 +115,40 @@ float test_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 void set_approximation_bits(int *hidden_nlayer_bits, int *extern_nlayer_bits, char config) {
 	switch (config) {
 		case CONFIG::APPROX1:
-			*hidden_nlayer_bits = 22;
-			*extern_nlayer_bits = 22;
+			*hidden_nlayer_bits = 16;
+			*extern_nlayer_bits = 16;
 			break;
 		case CONFIG::APPROX2:
-			*hidden_nlayer_bits = 18;
-			*extern_nlayer_bits = 18;
-			break;
-		case CONFIG::APPROX3:
 			*hidden_nlayer_bits = 14;
 			*extern_nlayer_bits = 14;
 			break;
+		case CONFIG::APPROX3:
+			*hidden_nlayer_bits = 11;
+			*extern_nlayer_bits = 11;
+			break;
 		case CONFIG::APPROX4:
-			*hidden_nlayer_bits = 22;
+			*hidden_nlayer_bits = 16;
 			*extern_nlayer_bits = 32;
 			break;
 		case CONFIG::APPROX5:
-			*hidden_nlayer_bits = 18;
+			*hidden_nlayer_bits = 14;
 			*extern_nlayer_bits = 32;
 			break;
 		case CONFIG::APPROX6:
-			*hidden_nlayer_bits = 14;
+			*hidden_nlayer_bits = 11;
 			*extern_nlayer_bits = 32;
 			break;
 		case CONFIG::APPROX7:
-			*hidden_nlayer_bits = 18;
-			*extern_nlayer_bits = 22;
+			*hidden_nlayer_bits = 14;
+			*extern_nlayer_bits = 16;
 			break;
 		case CONFIG::APPROX8:
-			*hidden_nlayer_bits = 14;
-			*extern_nlayer_bits = 22;
+			*hidden_nlayer_bits = 11;
+			*extern_nlayer_bits = 16;
 			break;
 		case CONFIG::APPROX9:
-			*hidden_nlayer_bits = 12;
-			*extern_nlayer_bits = 18;
+			*hidden_nlayer_bits = 10;
+			*extern_nlayer_bits = 14;
 			break;
 		default:
 			*hidden_nlayer_bits = 32;
@@ -150,8 +157,8 @@ void set_approximation_bits(int *hidden_nlayer_bits, int *extern_nlayer_bits, ch
 	}
 }
 
-/* Truncates the weights of the net passed as argument according to the selected configuration */
-tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
+/* Approximates the weights of the net passed as argument according to the selected configuration */
+tiny_dnn::network<tiny_dnn::sequential> approximate_weights(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
 	int hidden_nlayer_bits = 32;
 	int extern_nlayer_bits = 32;
   
@@ -165,8 +172,10 @@ tiny_dnn::network<tiny_dnn::sequential> truncate_weights(tiny_dnn::network<tiny_
 
 		if (bits < 32) {
 			for (size_t i = 0; i < weights_list.size(); i++) {
-				for (size_t j = 0; j < weights_list[i]->size(); j++) {
-					weights_list[i]->at(j) = roundb(weights_list[i]->at(j), bits);
+				if (i != 1) {
+					for (size_t j = 0; j < weights_list[i]->size(); j++) {
+						weights_list[i]->at(j) = roundb(weights_list[i]->at(j), bits);
+					}
 				}
 			}
 		}
@@ -197,36 +206,44 @@ int saved_bits(tiny_dnn::network<tiny_dnn::sequential> net, char config) {
 }
 
 /* Trains the network with the selected configuration */
-void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool is_testing) {
+void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, bool exec_ac, vector<tiny_dnn::vec_t> p_train_images, vector<tiny_dnn::label_t> p_train_labels, vector<tiny_dnn::vec_t> p_test_images, vector<tiny_dnn::label_t> p_test_labels) {
 
 	// loads weights from existing file if the configuration is not the basic one
-  if (config != CONFIG::BASE && !is_testing) {
+  if (!exec_ac) {
     if (exists_file(BASE_PATH + "net-weights-json_" + config)) {
-      char input_retrain = ' ';
-      string input       = " ";
-      while (input_retrain != '1' && input_retrain != '2') {
-        cout
-          << "> Per questa configurazione esistono gia' dei pesi salvati. Vuoi "
-             "effettuare l'allenamento a partire da questi pesi (digita 1) o "
-             "dalla configurazione originale non approssimata (digita 2)?"
-          << endl;
-        cin >> input; input_retrain = input[0];
-      }
-      if (input_retrain == '1') {
-        net.load(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+			if (config != CONFIG::BASE) {
+				char input_retrain = ' ';
+				string input = " ";
+				while (input_retrain != '1' && input_retrain != '2') {
+					cout
+						<< "> Per questa configurazione esistono gia' dei pesi salvati. Vuoi "
+						"effettuare l'allenamento a partire da questi pesi (digita 1) o "
+						"dalla configurazione originale non approssimata (digita 2)?"
+						<< endl;
+					cin >> input; input_retrain = input[0];
+				}
+				if (input_retrain == '1') {
+					net.load(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+					cout << "> Pesi caricati dalla memoria" << endl;
+				}
+				else {
+					net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+					cout << "> Pesi caricati dalla memoria" << endl;
+					net = approximate_weights(net, config);
+				}
+			}
+			else {
+				net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
 				cout << "> Pesi caricati dalla memoria" << endl;
-      }
-      else {
-        net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-        cout << "> Pesi caricati dalla memoria" << endl;
-				net = truncate_weights(net, config);
 			}
     } else {
-      net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-      cout << "> Pesi caricati dalla memoria" << endl;
-			net = truncate_weights(net, config);
+			if (config != CONFIG::BASE) {
+				net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+				cout << "> Pesi caricati dalla memoria" << endl;
+				net = approximate_weights(net, config);
+			}
 		}
-	}
+  }
 
   // set learning parameters
   size_t batch_size = BATCH_NUMBER;																													// n samples for each network weight update
@@ -234,60 +251,69 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
   tiny_dnn::adam optimizer;																																	// optimizer
   cout << "> Parametri per il training impostati: batch size " << batch_size << " - epoche " << epochs << endl;
 
-	// load cifar10 dataset
-	cout << "> Caricamento cifar dataset" << endl;
-	vector<tiny_dnn::label_t> train_labels, test_labels;
+	// load cifar10 train dataset
 	vector<tiny_dnn::vec_t> train_images, test_images;
-
-	for (int i = 1; i <= 5; i++) {
-		parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/data_batch_" + std::to_string(i) + ".bin", &train_images, &train_labels, -1.0, 1.0, 0, 0);
+	vector<tiny_dnn::label_t> train_labels, test_labels;
+	bool dataset_yet_loaded = (!p_train_images.empty() && !p_train_labels.empty() && !p_test_images.empty() && !p_test_labels.empty());
+	if (!dataset_yet_loaded) {
+		cout << "> Caricamento cifar dataset" << endl;
+		for (int i = 1; i <= 5; i++) {
+			parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/data_batch_" + to_string(i) + ".bin", &train_images, &train_labels, -1.0, 1.0, 0, 0);
+		}
+		parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
+		cout << "> Caricamento cifar dataset completato" << endl;
 	}
-	parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
-	cout << "> Caricamento cifar dataset completato" << endl;
+
 	cout << "> Training iniziato" << endl;
 
 	// inizialize display, timer and optimizer variables
-	tiny_dnn::progress_display disp(train_images.size());
+	tiny_dnn::progress_display disp(dataset_yet_loaded ? p_train_images.size() : train_images.size());
 	tiny_dnn::timer t;
 	optimizer.alpha *= static_cast<tiny_dnn::float_t>(sqrt(BATCH_NUMBER) * LEARNING_RATE);
 
   // on_enumerate_epoch: this lambda function will be called after each epoch
   int epoch = 1;
   auto on_enumerate_epoch = [&]() {
-		std::cout << "Epoca " << epoch << "/" << epochs << " completata. "
-			<< t.elapsed() << "s trascorsi. Inizio test." << std::endl;
+		net.save(BASE_PATH + "net-weights-json_" + config + to_string(epoch), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);		// Da aggiungere solo se si vuole salvare ad ogni epoca: 
+		cout << "Epoca " << epoch << "/" << epochs << " completata. "
+			<< t.elapsed() << "s trascorsi. Inizio test." << endl;
 		++epoch;
-		tiny_dnn::result res = net.test(test_images, test_labels);
-		cout << res.num_success << "/" << res.num_total << std::endl;
 
-		disp.restart(train_images.size());
+		if (!exec_ac) {
+			tiny_dnn::result res = net.test((dataset_yet_loaded ? p_test_images : test_images), (dataset_yet_loaded ? p_test_labels : test_labels));
+			cout << res.num_success << "/" << res.num_total << endl;
+		}
+		
+		if (epoch <= epochs) {
+			disp.restart((dataset_yet_loaded ? p_train_images.size() : train_images.size()));
+		}
 		t.restart();
   };
 
   // on_enumerate_minibatch: this lambda function will be called after each minibatch (after weights update)
   auto on_enumerate_minibatch = [&]() {
 		disp += BATCH_NUMBER;
-		if (config != CONFIG::BASE)
-			net = truncate_weights(net, config);
+		//if (config != CONFIG::BASE)
+		//	net = approximate_weights(net, config);				TODO: Vedere se inserirla o meno
 	};
 
   // learn
-	net.train<tiny_dnn::cross_entropy>(optimizer, train_images, train_labels, BATCH_NUMBER, epochs, on_enumerate_minibatch, on_enumerate_epoch);
+	net.train<tiny_dnn::cross_entropy>(optimizer, (dataset_yet_loaded ? p_train_images : train_images), (dataset_yet_loaded ? p_train_labels : train_labels), BATCH_NUMBER, epochs, on_enumerate_minibatch, on_enumerate_epoch);
   
-	// truncate and save the new weights
+	// approximate and save the new weights
 	if (config != CONFIG::BASE)
-		net = truncate_weights(net, config);
+		net = approximate_weights(net, config);
 	net.save(BASE_PATH + "net-weights-json_" + config, tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
 	
 	// displays the number of bits saved thanks to the approximation
-  cout << endl << "> Training terminato con successo!" << (config != CONFIG::BASE ? (" Sono stati risparmiati " + to_string(saved_bits(net, config)) + " bit") : "") << endl << endl;
+  cout << endl << "> Training terminato con successo!" << ((config != CONFIG::BASE && !exec_ac) ? (" Sono stati risparmiati " + to_string(saved_bits(net, config)) + " bit") : "") << endl << endl;
 }
 
 /* Inizialize (train + test) the model and weights of the network on its base configuration (no approximation) */
 void inizialize_base_configuration() {
   // train network
 	tiny_dnn::network<tiny_dnn::sequential> net = create_network();
-  train_network(net, CONFIG::BASE, false);
+  train_network(net, CONFIG::BASE, false, vector<tiny_dnn::vec_t>(), vector<tiny_dnn::label_t>(), vector<tiny_dnn::vec_t>(), vector<tiny_dnn::label_t>());
 }
 
 /* Saves results of test and prints them on console */
@@ -315,16 +341,63 @@ void save_results(float accuracy_before_retrain[], float accuracy_after_retrain[
 
 /* Automatic tests all approximate network configurations */
 void automatic_test() {
-  cout << "===== Test automatico iniziato! =====" << endl;
-  tiny_dnn::network<tiny_dnn::sequential> net = create_network();
+	cout << "===== Test automatico di tutte le configurazioni iniziato! =====" << endl;
+	cout << "> Verra' testata la configurazione originale. Dunque per ogni configurazione sara' effettuato il test a partire dai pesi approssimati salvati." << endl;
+
 	char configs[9] = { CONFIG::APPROX1, CONFIG::APPROX2, CONFIG::APPROX3, CONFIG::APPROX4, CONFIG::APPROX5, CONFIG::APPROX6, CONFIG::APPROX7, CONFIG::APPROX8, CONFIG::APPROX9 };
+	
+	// load net and base config weights
+	tiny_dnn::network<tiny_dnn::sequential> net = create_network();
+	net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+
+	// load images from test dataset
+	cout << "> Caricamento dataset di test iniziato" << endl;
+	vector<tiny_dnn::vec_t> test_images;
+	vector<tiny_dnn::label_t> test_labels;
+	parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
+	cout << "> Caricamento dataset di test terminato" << endl << endl;
+
+	// test base configuration
+	cout << "CONFIGURAZIONE ORIGINALE" << endl;
+	test_network(net, CONFIG::BASE, true, test_images, test_labels);
+
+	// test approximated configurations
+	for (int i = 0; i < (sizeof(configs) / sizeof(*configs)); i++) {
+		cout << endl << "CONFIGURAZIONE " << string(1, configs[i]) << endl;
+		test_network(net, configs[i], false, test_images, test_labels);
+	}
+
+	cout << endl << "> Test automatico terminato!" << endl << endl;
+}
+
+/* Executes the approximate computing alghoritm on all configurations */
+void ac_nn_test() {
+  cout << "===== Algoritmo di approximate computing iniziato! =====" << endl;
+	cout << "> Verra' testata la configurazione originale. Dunque per ogni configurazione saranno effettuati: approssimazione, test, training, test." << endl;
+	cout << "> L'operazione potrebbe richiedere molto tempo" << endl;
+  char configs[9] = { CONFIG::APPROX1, CONFIG::APPROX2, CONFIG::APPROX3, CONFIG::APPROX4, CONFIG::APPROX5, CONFIG::APPROX6, CONFIG::APPROX7, CONFIG::APPROX8, CONFIG::APPROX9 };
 	float accuracy_before_retrain[10] = {};
 	float accuracy_after_retrain[10] = {};
 	int saved_bits_list[10] = {};
 
+	// load net and base config weights
+	tiny_dnn::network<tiny_dnn::sequential> net = create_network();
+	net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+
+	// load cifar10 training and test dataset
+	cout << "> Caricamento cifar dataset iniziato" << endl;
+	vector<tiny_dnn::vec_t> train_images, test_images;
+	vector<tiny_dnn::label_t> train_labels, test_labels;
+
+	for (int i = 1; i <= 5; i++) {
+		parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/data_batch_" + to_string(i) + ".bin", &train_images, &train_labels, -1.0, 1.0, 0, 0);
+	}
+	parse_cifar10(BASE_CIFAR10_IMAGES_PATH + "cifar-10-batches-bin/test_batch.bin", &test_images, &test_labels, -1.0, 1.0, 0, 0);
+	cout << "> Caricamento cifar dataset completato" << endl << endl;
+
 	// settings metrics for base configuration
 	cout << "CONFIGURAZIONE ORIGINALE" << endl;
-	accuracy_before_retrain[9] = test_network(net, CONFIG::BASE, false);
+	accuracy_before_retrain[9] = test_network(net, CONFIG::BASE, true, test_images, test_labels);
 	accuracy_after_retrain[9] = accuracy_before_retrain[9];
 	saved_bits_list[9] = 0;
 	cout << "-----------------------------------------------------" << endl;
@@ -334,16 +407,16 @@ void automatic_test() {
 		cout << endl << "CONFIGURAZIONE " << string(1, configs[i]) << endl;
 		net.load(BASE_PATH + "net-weights-json_0", tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
 
-		// truncate and test network
-		cout << "> Troncamento e test" << endl;
-		net = truncate_weights(net, configs[i]);
-		accuracy_before_retrain[i] = test_network(net, configs[i], true);
+		// approximate and test network
+		cout << "> Approssimazione e test" << endl;
+		net = approximate_weights(net, configs[i]);
+		accuracy_before_retrain[i] = test_network(net, configs[i], true, test_images, test_labels);
 	
 		// retrain and test network
 		cout << "> Retraining e test" << endl;
-		train_network(net, configs[i], true);
-		net.load(BASE_PATH + "net-weights-json_" + string(1, configs[i]), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
-		accuracy_after_retrain[i] = test_network(net, configs[i], true);
+		train_network(net, configs[i], true, train_images, train_labels, test_images, test_labels);
+		net.load(BASE_PATH + "net-weights-json_" + configs[i], tiny_dnn::content_type::weights, tiny_dnn::file_format::json);
+		accuracy_after_retrain[i] = test_network(net, configs[i], true, test_images, test_labels);
 		saved_bits_list[i] = saved_bits(net, configs[i]);
 		cout << "Sono stati risparmiati " + to_string(saved_bits_list[i]) + " bit" << endl;
 

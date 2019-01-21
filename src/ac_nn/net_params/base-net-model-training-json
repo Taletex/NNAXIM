@@ -9,7 +9,7 @@
             },
             "window_width": 5,
             "window_height": 5,
-            "out_channels": 8,
+            "out_channels": 32,
             "connection_table": {
                 "rows": 0,
                 "cols": 0,
@@ -27,7 +27,7 @@
             "in_size": {
                 "width": 32,
                 "height": 32,
-                "depth": 8
+                "depth": 32
             },
             "pool_size_x": 2,
             "pool_size_y": 2,
@@ -41,7 +41,7 @@
             "in_size": {
                 "width": 16,
                 "height": 16,
-                "depth": 8
+                "depth": 32
             }
         },
         {
@@ -49,11 +49,11 @@
             "in_size": {
                 "width": 16,
                 "height": 16,
-                "depth": 8
+                "depth": 32
             },
             "window_width": 5,
             "window_height": 5,
-            "out_channels": 8,
+            "out_channels": 32,
             "connection_table": {
                 "rows": 0,
                 "cols": 0,
@@ -71,7 +71,7 @@
             "in_size": {
                 "width": 16,
                 "height": 16,
-                "depth": 8
+                "depth": 32
             },
             "pool_size_x": 2,
             "pool_size_y": 2,
@@ -85,7 +85,7 @@
             "in_size": {
                 "width": 8,
                 "height": 8,
-                "depth": 8
+                "depth": 32
             }
         },
         {
@@ -93,11 +93,11 @@
             "in_size": {
                 "width": 8,
                 "height": 8,
-                "depth": 8
+                "depth": 32
             },
             "window_width": 5,
             "window_height": 5,
-            "out_channels": 16,
+            "out_channels": 64,
             "connection_table": {
                 "rows": 0,
                 "cols": 0,
@@ -115,7 +115,7 @@
             "in_size": {
                 "width": 8,
                 "height": 8,
-                "depth": 16
+                "depth": 64
             },
             "pool_size_x": 2,
             "pool_size_y": 2,
@@ -129,12 +129,12 @@
             "in_size": {
                 "width": 4,
                 "height": 4,
-                "depth": 16
+                "depth": 64
             }
         },
         {
             "type": "fully_connected",
-            "in_size": 256,
+            "in_size": 1024,
             "out_size": 64,
             "has_bias": true
         },

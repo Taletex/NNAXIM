@@ -1,0 +1,458 @@
+
+
++----------------------------------------------------------------------------------------------+
+|                                 BENVENUTO IN NNAXIM                                          |
++----------------------------------------------------------------------------------------------+
+|Seleziona una configurazione della rete su cui lavorare:                                      |
+| 0) Configurazione originale (nessuna approssimazione)                                        |
+| 1) Configurazione 1 (16 bit per tutti i neuroni della rete)                                  |
+| 2) Configurazione 2 (13 bit per tutti i neuroni della rete)                                  |
+| 3) Configurazione 3 (11 bit per tutti i neuroni della rete)                                  |
+| 4) Configurazione 4 (16 bit per i neuroni degli hidden layer)                                |
+| 5) Configurazione 5 (13 bit per i neuroni degli hidden layer)                                |
+| 6) Configurazione 6 (11 bit per i neuroni degli hidden layer)                                |
+| 7) Configurazione 7 (16 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |
+| 8) Configurazione 8 (13 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |
+| 9) Configurazione 9 (10 bit per i neuroni degli hidden layer, 13 per quelli degli I/O layer) |
+| T) Test automatico di tutte le configurazioni                                                |
+| A) Esecuzione dell'algoritmo di approximate computing per tutte le configurazioni            |
+| Q) Esci                                                                                      |
++----------------------------------------------------------------------------------------------+
+
+a
+===== Algoritmo di approximate computing iniziato! =====
+> Verra' testata la configurazione originale. Dunque per ogni configurazione saranno effettuati: approssimazione, test, training, test.
+> L'operazione potrebbe richiedere molto tempo
+> Rete caricata dal modello salvato
+> Caricamento cifar dataset iniziato
+> Caricamento cifar dataset completato
+
+CONFIGURAZIONE ORIGINALE
+> Test della rete iniziato
+accuracy:68.66% (6866/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   723    17    62    12    19    12     1    11    53    28
+    1    19   775     4     6     1     5     5     2    32    73
+    2    60    16   562    84    62    79    55    32    15    11
+    3    27    21    81   566    81   273    90    48    28    26
+    4    34     7   120    86   673    56    56    67    16     6
+    5     6     2    41    96     9   439    13    30     8     5
+    6     8    17    53    64    36    36   756     9     6     5
+    7    23    15    61    62   105    92    11   793     8    49
+    8    62    25     6    11    10     4     8     1   803    21
+    9    38   105    10    13     4     4     5     7    31   776
+-----------------------------------------------------
+
+CONFIGURAZIONE 1
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.66% (6866/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   723    17    62    12    19    12     1    11    53    28
+    1    19   776     4     6     1     5     5     2    33    75
+    2    60    16   560    83    61    79    55    32    15    11
+    3    27    21    81   567    82   272    87    48    28    26
+    4    34     7   121    87   674    57    56    67    16     6
+    5     6     2    41    93     9   437    13    29     8     5
+    6     8    17    54    66    36    36   759     9     6     6
+    7    23    15    61    62   105    94    11   794     8    49
+    8    63    25     6    11    10     4     8     1   803    21
+    9    37   104    10    13     3     4     5     7    30   773
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 190.075s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:69% (6900/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   730    22    66    14    19    11     1    11    56    28
+    1    19   776     3     6     1     5     4     2    31    75
+    2    60    18   575    85    68    79    57    35    16    12
+    3    28    21    83   571    88   276    90    50    30    27
+    4    33     6   112    83   669    50    45    64    15     8
+    5     6     2    41   101    11   448    15    30     7     7
+    6     9    16    49    65    34    38   767     8     7     5
+    7    20    15    58    54    98    84    10   793     8    46
+    8    62    25     6    10     9     5     8     1   800    21
+    9    33    99     7    11     3     4     3     6    30   771
+Sono stati risparmiati 2329248 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 2
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.68% (6868/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   718    17    58    12    19    12     1    11    51    26
+    1    18   772     4     6     1     5     4     2    32    72
+    2    61    17   560    83    64    78    55    33    15    11
+    3    28    21    84   569    81   272    88    49    29    27
+    4    34     7   124    88   675    61    55    68    16     7
+    5     5     2    41    90     8   434    13    28     7     4
+    6     8    17    52    65    37    36   760     8     6     5
+    7    23    14    61    62   101    93    11   793     8    46
+    8    67    26     6    11    10     5     8     1   806    21
+    9    38   107    10    14     4     4     5     7    30   781
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 189.858s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.71% (6871/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   719    18    59    12    17    11     1    11    52    23
+    1    19   774     4     6     1     5     4     1    33    75
+    2    61    18   562    81    64    77    55    34    17    12
+    3    28    21    81   565    79   274    85    47    28    27
+    4    36     7   124    89   681    60    55    66    16     8
+    5     7     2    43    99     9   437    15    28     7     7
+    6     9    15    51    65    34    37   762     9     6     4
+    7    24    15    62    59   103    91    13   797     8    50
+    8    63    25     5    10    10     4     7     1   802    22
+    9    34   105     9    14     2     4     3     6    31   772
+Sono stati risparmiati 2620404 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 3
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:67.81% (6781/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   672     9    58    10    15     8     1     9    32    17
+    1    22   781     7     7     2     5     4     4    26   100
+    2    52    15   569    76    74    68    49    38     9    10
+    3    42    30   115   641   117   348   103    76    36    43
+    4    30     3    95    72   615    48    32    69    12     4
+    5     3     3    33    58     8   391    12    32     4     5
+    6     8    16    57    65    71    38   776     9     8     7
+    7    18     7    48    46    77    77     9   748     7    32
+    8   116    36    11    15    16    13    11     6   845    39
+    9    37   100     7    10     5     4     3     9    21   743
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 214.414s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.12% (6812/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   673    13    56    12    15     9     1     9    31    20
+    1    21   772     5     7     2     3     4     4    26    95
+    2    60    17   582    82    77    74    53    37    11    12
+    3    40    26   107   628   109   333   104    72    37    42
+    4    30     4    99    71   634    49    35    69    12     6
+    5     5     3    36    72    10   411    13    32     5     6
+    6     7    16    52    60    54    35   767     8     8     6
+    7    17     8    46    45    79    72     9   757     7    30
+    8   111    36    10    13    15    11    11     3   843    38
+    9    36   105     7    10     5     3     3     9    20   745
+Sono stati risparmiati 3057138 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 4
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.7% (6870/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   723    17    62    12    19    12     1    11    53    28
+    1    19   776     4     6     1     5     5     2    33    74
+    2    60    16   562    84    62    79    55    32    15    11
+    3    27    21    81   567    82   273    86    48    29    26
+    4    34     7   120    86   673    56    55    67    16     6
+    5     6     2    41    92     9   437    13    29     7     5
+    6     8    17    53    67    36    37   761     9     6     6
+    7    23    15    61    62   105    93    11   794     8    49
+    8    63    25     6    11    10     4     8     1   803    21
+    9    37   104    10    13     3     4     5     7    30   774
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 189.668s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.92% (6892/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   729    21    63    12    18    11     1    11    55    28
+    1    19   775     4     6     1     5     4     2    32    72
+    2    62    19   570    84    66    78    56    34    17    13
+    3    28    21    82   566    85   277    88    49    29    27
+    4    35     7   117    85   676    55    51    64    16     7
+    5     6     2    41   100     9   444    15    29     7     6
+    6     8    16    49    65    34    37   763     8     7     4
+    7    22    14    60    58    99    85    12   796     8    48
+    8    58    24     6    11     9     4     7     1   799    21
+    9    33   101     8    13     3     4     3     6    30   774
+Sono stati risparmiati 2290336 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 5
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.71% (6871/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   718    17    60    12    19    12     1    11    53    27
+    1    19   773     4     6     1     5     4     2    32    72
+    2    59    17   560    83    60    79    55    33    15    11
+    3    27    20    82   569    80   269    86    49    29    27
+    4    35     7   123    88   679    61    59    68    16     7
+    5     6     2    40    91     8   437    13    27     7     4
+    6     8    17    53    65    36    36   758     9     6     4
+    7    23    14    61    61   103    92    11   793     8    46
+    8    66    26     7    11    10     5     8     1   803    21
+    9    39   107    10    14     4     4     5     7    31   781
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 189.953s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.69% (6869/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   721    18    62    13    17    11     1    11    51    27
+    1    18   773     4     6     1     5     4     1    31    73
+    2    61    17   560    84    62    78    56    34    16    12
+    3    27    21    81   556    80   272    85    46    29    26
+    4    35     7   124    88   678    59    50    65    16     7
+    5     6     2    41   101     8   435    16    27     6     6
+    6     9    16    52    68    37    37   765     9     6     5
+    7    23    15    61    59   104    95    13   800     8    48
+    8    65    27     7    11    10     4     7     1   806    21
+    9    35   104     8    14     3     4     3     6    31   775
+Sono stati risparmiati 2576628 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 6
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.53% (6853/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   684    13    57    11    20    10     1    11    39    18
+    1    25   789     8     7     2     5     6     4    30    81
+    2    57    13   561    77    62    76    48    35     8     9
+    3    41    26   115   646   110   356   110    70    35    39
+    4    30     4   113    71   661    55    40    72    10     6
+    5     5     1    30    61     8   380    11    27     5     5
+    6     8    16    51    53    42    34   763     9     7     4
+    7    18    11    48    49    79    70     8   763     6    33
+    8    95    30     9    14    12    10    10     1   836    35
+    9    37    97     8    11     4     4     3     8    24   770
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 191.206s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.66% (6866/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   690    13    58    11    20    10     1    11    38    19
+    1    20   786     5     7     2     5     6     3    28    79
+    2    59    16   573    82    72    73    54    37     9    11
+    3    41    24   113   638   105   348   115    67    36    36
+    4    31     4   107    69   659    52    42    70    10     6
+    5     5     2    31    69    10   396    12    28     5     6
+    6     7    16    48    50    36    31   748     9     7     4
+    7    19     9    48    50    81    72     9   765     7    32
+    8    92    29     9    13    11    10    10     1   837    33
+    9    36   101     8    11     4     3     3     9    23   774
+Sono stati risparmiati 3006066 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 7
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.66% (6866/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   718    17    60    12    19    12     1    11    53    27
+    1    19   773     4     6     1     5     4     2    32    72
+    2    59    17   558    83    60    79    55    33    15    11
+    3    27    20    83   569    80   269    87    50    29    26
+    4    35     7   125    88   679    61    60    68    16     8
+    5     6     2    39    92     8   437    13    27     7     4
+    6     8    17    53    64    36    36   756     9     6     4
+    7    23    14    61    61   103    92    11   792     8    46
+    8    66    26     7    11    10     5     8     1   803    21
+    9    39   107    10    14     4     4     5     7    31   781
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 190.174s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.83% (6883/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   723    18    61    12    19    11     1    11    53    24
+    1    18   774     3     6     1     4     4     1    31    70
+    2    59    19   574    86    66    77    56    34    17    13
+    3    27    21    83   566    87   281    90    49    30    27
+    4    35     6   114    83   664    51    47    62    15     6
+    5     6     2    41   101     9   438    15    29     7     6
+    6     9    15    48    63    34    37   763     8     6     5
+    7    24    15    61    60   107    92    13   799     8    48
+    8    63    26     7    10    10     5     7     1   802    21
+    9    36   104     8    13     3     4     4     6    31   780
+Sono stati risparmiati 2615540 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 8
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:68.51% (6851/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   683    13    57    11    20    10     1    11    39    18
+    1    24   789     8     7     2     5     6     4    30    82
+    2    57    13   559    76    62    76    48    35     8     9
+    3    40    26   116   647   108   356   111    70    35    39
+    4    31     4   113    72   662    55    40    72    10     6
+    5     5     1    30    60     8   380    11    26     5     5
+    6     8    16    51    53    42    34   762     9     7     4
+    7    19    11    49    49    79    70     8   764     6    33
+    8    96    30     9    14    13    10    10     1   836    35
+    9    37    97     8    11     4     4     3     8    24   769
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 191.194s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:68.53% (6853/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   691    14    58    11    20    10     1    11    38    20
+    1    20   783     5     7     2     5     6     3    30    80
+    2    61    16   574    83    73    75    54    39    11    11
+    3    40    25   113   640   108   349   114    66    37    36
+    4    31     4   106    70   653    53    41    68    10     6
+    5     5     2    31    67     9   392    12    28     4     6
+    6     7    16    48    50    38    31   750     9     7     4
+    7    19    10    48    50    82    72     9   766     7    32
+    8    90    28     9    11    11    10    10     1   832    33
+    9    36   102     8    11     4     3     3     9    24   772
+Sono stati risparmiati 3044978 bit
+-----------------------------------------------------
+
+CONFIGURAZIONE 9
+> Approssimazione e test
+> Test della rete iniziato
+accuracy:65.78% (6578/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   815    53    76    30    38    20     7    24   135    84
+    1    14   810     3     5     2     5     3     1    45   147
+    2    80    35   708   198   170   195   139    79    41    38
+    3    16    22    50   536    77   228   100    42    33    36
+    4    13     4    72    54   568    32    40    45    13     5
+    5     4     2    25    81    11   421    17    33     7     6
+    6     4    11    25    43    31    19   679     6     8    11
+    7    14    14    38    41    98    76     9   767    11    71
+    8    27    19     3     6     5     3     5     1   696    24
+    9    13    30     0     6     0     1     1     2    11   578
+> Retraining e test
+> Parametri per il training impostati: batch size 10 - epoche 1
+> Training iniziato
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Epoca 1/1 completata. 190.778s trascorsi. Inizio test.
+
+> Training terminato con successo!
+
+> Test della rete iniziato
+accuracy:66.05% (6605/10000)
+    *     0     1     2     3     4     5     6     7     8     9
+    0   806    46    77    28    35    19     5    25   121    80
+    1    12   813     3     6     2     5     4     1    44   146
+    2    83    34   693   183   165   175   131    76    40    35
+    3    18    24    51   542    77   237   108    42    31    36
+    4    15     4    73    58   572    33    44    47    14     6
+    5     2     2    29    83    10   431    17    32     6     6
+    6     4    11    28    42    30    19   675     6     8    10
+    7    12    15    42    44   102    76     9   768     9    65
+    8    35    19     4     7     7     4     6     1   716    27
+    9    13    32     0     7     0     1     1     2    11   589
+Sono stati risparmiati 3192988 bit
+-----------------------------------------------------
+
++ ====================================== TEST RESULTS ===================================== +
+| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |
+|       1       |            0.00%            |           -0.34%           | 2329248 |
+|       2       |            -0.02%            |           -0.05%           | 2620404 |
+|       3       |            0.85%            |           0.54%           | 3057138 |
+|       4       |            -0.04%            |           -0.26%           | 2290336 |
+|       5       |            -0.05%            |           -0.03%           | 2576628 |
+|       6       |            0.13%            |           0.00%           | 3006066 |
+|       7       |            0.00%            |           -0.17%           | 2615540 |
+|       8       |            0.15%            |           0.13%           | 3044978 |
+|       9       |            2.88%            |           2.61%           | 3192988 |
++ ====================================== ===== ===== ====================================== +
+
+
+
+
++----------------------------------------------------------------------------------------------+
+|                                 BENVENUTO IN NNAXIM                                          |
++----------------------------------------------------------------------------------------------+
+|Seleziona una configurazione della rete su cui lavorare:                                      |
+| 0) Configurazione originale (nessuna approssimazione)                                        |
+| 1) Configurazione 1 (16 bit per tutti i neuroni della rete)                                  |
+| 2) Configurazione 2 (13 bit per tutti i neuroni della rete)                                  |
+| 3) Configurazione 3 (11 bit per tutti i neuroni della rete)                                  |
+| 4) Configurazione 4 (16 bit per i neuroni degli hidden layer)                                |
+| 5) Configurazione 5 (13 bit per i neuroni degli hidden layer)                                |
+| 6) Configurazione 6 (11 bit per i neuroni degli hidden layer)                                |
+| 7) Configurazione 7 (16 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |
+| 8) Configurazione 8 (13 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |
+| 9) Configurazione 9 (10 bit per i neuroni degli hidden layer, 13 per quelli degli I/O layer) |
+| T) Test automatico di tutte le configurazioni                                                |
+| A) Esecuzione dell'algoritmo di approximate computing per tutte le configurazioni            |
+| Q) Esci                                                                                      |
++----------------------------------------------------------------------------------------------+
+
