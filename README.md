@@ -70,3 +70,4 @@ cd build
 
 #### 4 - Run the project
 On Visual Studio (after compilation is done) you can delete all projects except from the ac_nn one (you can also leave them, but if you do it you need to set the ac_nn project as the starting project). Then you can run the project using "debug" or "run without debug" buttons.
+Note: run the application in "Release" mode if you don't need to debug it. Running the application in "Debug" mode involves long execution time.
