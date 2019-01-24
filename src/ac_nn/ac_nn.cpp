@@ -1,7 +1,7 @@
 #include "ac_nn_lib.cpp"
 
 int main() {
-	tiny_dnn::network<tiny_dnn::sequential> net;
+  tiny_dnn::network<tiny_dnn::sequential> net;
 	char input_config = ' ';
 	char input_op = ' ';
 	char input_training = ' ';
@@ -32,14 +32,14 @@ int main() {
 		cout << "|Seleziona una configurazione della rete su cui lavorare:                                      |" << endl;
 		cout << "| 0) Configurazione originale (nessuna approssimazione)                                        |" << endl;
 		cout << "| 1) Configurazione 1 (16 bit per tutti i neuroni della rete)                                  |" << endl;
-		cout << "| 2) Configurazione 2 (13 bit per tutti i neuroni della rete)                                  |" << endl;
-		cout << "| 3) Configurazione 3 (11 bit per tutti i neuroni della rete)                                  |" << endl;
+		cout << "| 2) Configurazione 2 (14 bit per tutti i neuroni della rete)                                  |" << endl;
+		cout << "| 3) Configurazione 3 (12 bit per tutti i neuroni della rete)                                  |" << endl;
 		cout << "| 4) Configurazione 4 (16 bit per i neuroni degli hidden layer)                                |" << endl;
-		cout << "| 5) Configurazione 5 (13 bit per i neuroni degli hidden layer)                                |" << endl;
-		cout << "| 6) Configurazione 6 (11 bit per i neuroni degli hidden layer)                                |" << endl;
-		cout << "| 7) Configurazione 7 (16 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |" << endl;
-		cout << "| 8) Configurazione 8 (13 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |" << endl;
-		cout << "| 9) Configurazione 9 (10 bit per i neuroni degli hidden layer, 13 per quelli degli I/O layer) |" << endl;
+		cout << "| 5) Configurazione 5 (14 bit per i neuroni degli hidden layer)                                |" << endl;
+		cout << "| 6) Configurazione 6 (12 bit per i neuroni degli hidden layer)                                |" << endl;
+		cout << "| 7) Configurazione 7 (14 bit per i neuroni degli hidden layer, 16 per quelli degli I/O layer) |" << endl;
+		cout << "| 8) Configurazione 8 (12 bit per i neuroni degli hidden layer, 14 per quelli degli I/O layer) |" << endl;
+		cout << "| 9) Configurazione 9 (11 bit per i neuroni degli hidden layer, 12 per quelli degli I/O layer) |" << endl;
 		cout << "| T) Test automatico di tutte le configurazioni                                                |" << endl;
 		cout << "| A) Esecuzione dell'algoritmo di approximate computing per tutte le configurazioni            |" << endl;
 		cout << "| Q) Esci                                                                                      |" << endl;
@@ -56,7 +56,7 @@ int main() {
 		if (input_config == CONFIG::BASE) { cout << "1) Allena la rete con la configurazione " << input_config << endl; }
 		cout << "2) Testa la rete con la configurazione " << input_config << " (Test della rete con i pesi salvati)" << endl;
 		cout << "Per tornare indietro premi un tasto diverso da 1 e 2" << endl;
-		
+
 		cin >> input; input_op = input[0];
 		switch (input_op) {
 		case '1':

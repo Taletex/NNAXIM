@@ -1,19 +1,18 @@
 #include "tiny_dnn/tiny_dnn.h"
 
-using namespace std;
-
-// VARIABLES AND CONSTANTS //
-const string BASE_PATH = "../../ac_nn/net_params/";
-const string BASE_CIFAR10_IMAGES_PATH = "../../ac_nn/";
+// CONSTANTS //
+const std::string BASE_PATH = "../../ac_nn/net_params/";
+const std::string BASE_CIFAR10_IMAGES_PATH = "../../ac_nn/";
 const int BASE_EPOCHS_NUMBER = 150;
-const int EPOCHS_NUMBER = 1;
-const int BATCH_NUMBER = 10;
+const int RETRAIN_EPOCHS_NUMBER = 5;
+const int BASE_BATCH_NUMBER = 10;
+const int RETRAIN_BATCH_NUMBER = 500;
 const double LEARNING_RATE = 0.002;
 const tiny_dnn::core::backend_t BACKEND_TYPE = tiny_dnn::core::default_engine();
 const enum CONFIG : char { BASE = '0', APPROX1 = '1', APPROX2 = '2', APPROX3 = '3', APPROX4 = '4', APPROX5 = '5', APPROX6 = '6', APPROX7 = '7', APPROX8 = '8', APPROX9 = '9' };
 
 // FUNCTIONS DECLARATION //
-bool exists_file(const string& name);
+bool exists_file(const std::string& name);
 
 tiny_dnn::network<tiny_dnn::sequential> create_network();
 
