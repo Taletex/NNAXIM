@@ -3,11 +3,11 @@
 // CONSTANTS //
 const std::string BASE_PATH = "../../ac_nn/net_params/";
 const std::string BASE_CIFAR10_IMAGES_PATH = "../../ac_nn/";
-const int BASE_EPOCHS_NUMBER = 150;
-const int RETRAIN_EPOCHS_NUMBER = 5;
+const int BASE_EPOCHS_NUMBER = 400;
+const int RETRAIN_EPOCHS_NUMBER = 2;
 const int BASE_BATCH_NUMBER = 10;
-const int RETRAIN_BATCH_NUMBER = 500;
-const double LEARNING_RATE = 0.002;
+const int RETRAIN_BATCH_NUMBER = 10;
+const double LEARNING_RATE = 0.00042;
 const tiny_dnn::core::backend_t BACKEND_TYPE = tiny_dnn::core::default_engine();
 const enum CONFIG : char { BASE = '0', APPROX1 = '1', APPROX2 = '2', APPROX3 = '3', APPROX4 = '4', APPROX5 = '5', APPROX6 = '6', APPROX7 = '7', APPROX8 = '8', APPROX9 = '9' };
 

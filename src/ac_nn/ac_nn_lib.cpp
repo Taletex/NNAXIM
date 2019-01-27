@@ -55,7 +55,7 @@ tiny_dnn::network<tiny_dnn::sequential> create_network() {
 		const size_t n_fmaps2 = 64;		// number of feature maps for lower layer
 		const size_t n_fc = 64;				// number of hidden units in fc layer
 
-		net << conv(32, 32, 5, 3, n_fmaps, tiny_dnn::padding::same, true, 1, 1, 1, 1, BACKEND_TYPE)					// C1
+		net << conv(32, 32, 5, 3, n_fmaps, tiny_dnn::padding::same, true, 1, 1, 1, 1, BACKEND_TYPE)				// C1
 			<< pool(32, 32, n_fmaps, 2, false, BACKEND_TYPE)																								// P2
 			<< relu()																																												// activation
 			<< conv(16, 16, 5, n_fmaps, n_fmaps, tiny_dnn::padding::same, true, 1, 1, 1, 1, BACKEND_TYPE)		// C3
@@ -150,7 +150,7 @@ void set_approximation_bits(int *hidden_nlayer_bits, int *extern_nlayer_bits, ch
 		break;
 	case CONFIG::APPROX9:
 		*hidden_nlayer_bits = 11;
-		*extern_nlayer_bits = 13;
+		*extern_nlayer_bits = 12;
 		break;
 	default:
 		*hidden_nlayer_bits = 32;
@@ -276,15 +276,15 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 	int epoch = 1;
 	auto on_enumerate_epoch = [&]() {
 		if (config != CONFIG::BASE)
-			net = approximate_weights(net, config);				// if the configuration is not the basic one, approximate all the weights after each epoch
-		net.save(BASE_PATH + "net-weights-json_" + config + to_string(epoch), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);		 //To add only if you want to save weights at each epoch: 
-		cout << "Epoca " << epoch << "/" << epochs << " completata. " << t.elapsed() << "s trascorsi. Inizio test." << endl;
+			net = approximate_weights(net, config);				
+		//To add only if you want to save weights at each epoch: net.save(BASE_PATH + "net-weights-json_" + config + to_string(epoch), tiny_dnn::content_type::weights, tiny_dnn::file_format::json);		 
+		cout << " > Epoca " << epoch << "/" << epochs << " completata. " << t.elapsed() << "s trascorsi." << (exec_ac ? "Inizio test." : "") << endl;
 		++epoch;
 
-		//if (!exec_ac) {
-		tiny_dnn::result res = net.test((dataset_yet_loaded ? p_test_images : test_images), (dataset_yet_loaded ? p_test_labels : test_labels));
-		cout << res.num_success << "/" << res.num_total << endl;
-		//}
+		if (!exec_ac) {
+			tiny_dnn::result res = net.test((dataset_yet_loaded ? p_test_images : test_images), (dataset_yet_loaded ? p_test_labels : test_labels));
+			cout << " > Risultato test: " << res.num_success << "/" << res.num_total << endl;
+		}
 
 		if (epoch <= epochs) {
 			disp.restart((dataset_yet_loaded ? p_train_images.size() : train_images.size()));
@@ -297,7 +297,7 @@ void train_network(tiny_dnn::network<tiny_dnn::sequential> net, char config, boo
 	auto on_enumerate_minibatch = [&]() {
 		disp += batch_size;
 		if (config != CONFIG::BASE)
-			net = approximate_weights(net, config);				// if the configuration is not the basic one, approximate all the weights after each epoch
+			net = approximate_weights(net, config);				
 	};
 
 	// learn
@@ -326,7 +326,7 @@ void save_results(float accuracy_before_retrain[], float accuracy_after_retrain[
 	cout << endl << fixed << setprecision(2) << "+ ====================================== TEST RESULTS ===================================== +" << endl;
 	cout << "| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |" << endl;
 	for (int i = 0; i < 9; i++) {
-		cout << "|" << "       " << configs[i] << "       " << "|" << "             " << ((accuracy_before_retrain[9] - accuracy_before_retrain[i]) * 100) << "%" << "            " << "|" << "           " << ((accuracy_after_retrain[9] - accuracy_after_retrain[i]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "" << endl;
+		cout << "|" << "       " << configs[i] << "       " << "|" << "             " << ((accuracy_before_retrain[9] - accuracy_before_retrain[i]) * 100) << "%" << "            " << "|" << "           " << ((accuracy_after_retrain[9] - accuracy_after_retrain[i]) * 100) << "%" << "           " << " |" << "   " << (saved_bits_list[i]) << "   |" << "" << endl;
 	}
 	cout << "+ ====================================== ===== ===== ====================================== +" << endl << endl << endl;
 
@@ -334,8 +334,8 @@ void save_results(float accuracy_before_retrain[], float accuracy_after_retrain[
 	file.open(BASE_PATH + "log.txt");
 	file << fixed << setprecision(2) << "+ ====================================== TEST RESULTS ===================================== +\n";
 	file << "| CONFIGURATION | ACCURACY LOSS BEFORE RETRAIN | ACCURACY LOSS AFTER RETRAIN | SAVED BITS |\n";
-	for (int i = 0; i < (sizeof(configs) / sizeof(*configs)); i++) {
-		file << "|" << "       " << configs[i] << "       " << "|" << "             " << ((accuracy_before_retrain[9] - accuracy_before_retrain[i]) * 100) << "%" << "            " << "|" << "           " << ((accuracy_after_retrain[9] - accuracy_after_retrain[i]) * 100) << "%" << "           " << "|" << " " << (saved_bits_list[i]) << " |" << "\n";
+	for (int i = 0; i < 9; i++) {
+		file << "|" << "       " << configs[i] << "       " << "|" << "             " << ((accuracy_before_retrain[9] - accuracy_before_retrain[i]) * 100) << "%" << "            " << "|" << "           " << ((accuracy_after_retrain[9] - accuracy_after_retrain[i]) * 100) << "%" << "           " << " |" << "   " << (saved_bits_list[i]) << "   |" << "\n";
 	}
 	file << "+ ====================================== ===== ===== ====================================== +\n\n\n";
 	file.close();
