@@ -22,8 +22,8 @@ References available (italian only) at:
 
 ## Screenshots
 
-![screenshot](screenshots/1.png)
-![screenshot](screenshots/2.png)
+![screenshot](screenshots/1.PNG)
+![screenshot](screenshots/2.PNG)
 
 
 ## Requirements
