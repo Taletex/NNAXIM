@@ -29,7 +29,7 @@ References available (italian only) at:
 ## Requirements
 
 - Cmake
-- Visual Studio (2015 or successive versions) with c++ compiler installed
+- Visual Studio (2015 or successive versions) with C++ compiler installed
 
 
 ## Dependencies
